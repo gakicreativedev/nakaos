@@ -147,6 +147,149 @@ export const MOCK_BRAND_HUBS: BrandHubData[] = [
   },
 ];
 
+/* ── Tasks / Kanban Types ── */
+export type TaskPriority = "Urgente" | "Alta" | "Média" | "Baixa";
+export type TaskStatus = "Em Andamento" | "Pendente" | "Concluído";
+
+export interface Etapa {
+  id: string;
+  titulo: string;
+  responsavel: string;
+  prazo: string;
+  concluida: boolean;
+}
+
+export interface TaskComment {
+  id: string;
+  usuario: string;
+  texto: string;
+  data: string;
+}
+
+export interface Task {
+  id: string;
+  titulo: string;
+  descricao: string;
+  responsavel: string;
+  prazo: string;
+  prioridade: TaskPriority;
+  tags: string[];
+  clientId: string | null; // null = tarefa interna
+  colunaId: string;
+  etapas: Etapa[];
+  comentarios: TaskComment[];
+  anexos: string[];
+  recorrente: boolean;
+  frequencia?: string;
+  criadoEm: string;
+}
+
+export interface KanbanColumn {
+  id: string;
+  titulo: string;
+  clientId: string;
+  ordem: number;
+}
+
+export const MOCK_KANBAN_COLUMNS: KanbanColumn[] = [
+  { id: "col-1", titulo: "Backlog", clientId: "1", ordem: 0 },
+  { id: "col-2", titulo: "Em Produção", clientId: "1", ordem: 1 },
+  { id: "col-3", titulo: "Revisão", clientId: "1", ordem: 2 },
+  { id: "col-4", titulo: "Aprovado", clientId: "1", ordem: 3 },
+  { id: "col-5", titulo: "A Fazer", clientId: "2", ordem: 0 },
+  { id: "col-6", titulo: "Fazendo", clientId: "2", ordem: 1 },
+  { id: "col-7", titulo: "Feito", clientId: "2", ordem: 2 },
+  { id: "col-8", titulo: "Pendente", clientId: "4", ordem: 0 },
+  { id: "col-9", titulo: "Em Andamento", clientId: "4", ordem: 1 },
+  { id: "col-10", titulo: "Concluído", clientId: "4", ordem: 2 },
+];
+
+export const MOCK_TAGS = ["Redes Sociais", "Tráfego Pago", "Conteúdo", "Design", "Estratégia", "Urgente", "Reunião"];
+
+export const MOCK_TASKS: Task[] = [
+  {
+    id: "t1", titulo: "Criar calendário editorial março", descricao: "Planejar e montar o calendário de posts para março com datas comemorativas e temas estratégicos.",
+    responsavel: "Yuri", prazo: "2026-03-05", prioridade: "Alta", tags: ["Redes Sociais", "Conteúdo"],
+    clientId: "1", colunaId: "col-2",
+    etapas: [
+      { id: "e1", titulo: "Pesquisa de datas comemorativas", responsavel: "Yuri", prazo: "2026-03-02", concluida: true },
+      { id: "e2", titulo: "Definir temas semanais", responsavel: "Yuri", prazo: "2026-03-03", concluida: true },
+      { id: "e3", titulo: "Montar grid visual", responsavel: "Yuri", prazo: "2026-03-05", concluida: false },
+    ],
+    comentarios: [
+      { id: "c1", usuario: "Yuri", texto: "Vou incluir o Dia da Mulher como destaque.", data: "2026-03-01" },
+    ],
+    anexos: [], recorrente: true, frequencia: "Mensal", criadoEm: "2026-02-25",
+  },
+  {
+    id: "t2", titulo: "Configurar campanha Meta Ads", descricao: "Subir campanha de conversão no Meta Ads com público lookalike.",
+    responsavel: "Yuri", prazo: "2026-03-10", prioridade: "Urgente", tags: ["Tráfego Pago"],
+    clientId: "1", colunaId: "col-1",
+    etapas: [
+      { id: "e4", titulo: "Criar público lookalike", responsavel: "Yuri", prazo: "2026-03-07", concluida: false },
+      { id: "e5", titulo: "Design dos criativos", responsavel: "Yuri", prazo: "2026-03-08", concluida: false },
+      { id: "e6", titulo: "Subir campanha", responsavel: "Yuri", prazo: "2026-03-10", concluida: false },
+    ],
+    comentarios: [], anexos: [], recorrente: false, criadoEm: "2026-03-01",
+  },
+  {
+    id: "t3", titulo: "Revisão de diretrizes da marca", descricao: "Revisar brand guidelines e atualizar conforme feedback do cliente.",
+    responsavel: "Yuri", prazo: "2026-03-15", prioridade: "Média", tags: ["Design", "Estratégia"],
+    clientId: "1", colunaId: "col-3",
+    etapas: [
+      { id: "e7", titulo: "Levantar feedback do cliente", responsavel: "Yuri", prazo: "2026-03-12", concluida: true },
+      { id: "e8", titulo: "Atualizar documento", responsavel: "Yuri", prazo: "2026-03-15", concluida: false },
+    ],
+    comentarios: [
+      { id: "c2", usuario: "Yuri", texto: "@Ana pediu para mudar a cor secundária.", data: "2026-03-10" },
+    ],
+    anexos: [], recorrente: false, criadoEm: "2026-03-05",
+  },
+  {
+    id: "t4", titulo: "Posts semana 11", descricao: "Criar 3 posts para a semana 11 de março.",
+    responsavel: "Yuri", prazo: "2026-03-09", prioridade: "Alta", tags: ["Conteúdo", "Redes Sociais"],
+    clientId: "1", colunaId: "col-4",
+    etapas: [], comentarios: [], anexos: [], recorrente: true, frequencia: "Semanal", criadoEm: "2026-03-03",
+  },
+  {
+    id: "t5", titulo: "Fotos para feed", descricao: "Sessão de fotos dos novos produtos para o feed do Instagram.",
+    responsavel: "Yuri", prazo: "2026-03-12", prioridade: "Alta", tags: ["Conteúdo"],
+    clientId: "2", colunaId: "col-5",
+    etapas: [
+      { id: "e9", titulo: "Agendar sessão", responsavel: "Yuri", prazo: "2026-03-08", concluida: true },
+      { id: "e10", titulo: "Edição das fotos", responsavel: "Yuri", prazo: "2026-03-11", concluida: false },
+    ],
+    comentarios: [], anexos: [], recorrente: false, criadoEm: "2026-03-02",
+  },
+  {
+    id: "t6", titulo: "Roteiro Reels TikTok", descricao: "Escrever 5 roteiros de Reels/TikTok sobre café especial.",
+    responsavel: "Yuri", prazo: "2026-03-14", prioridade: "Média", tags: ["Conteúdo", "Redes Sociais"],
+    clientId: "2", colunaId: "col-6",
+    etapas: [], comentarios: [], anexos: [], recorrente: false, criadoEm: "2026-03-05",
+  },
+  {
+    id: "t7", titulo: "Relatório mensal fevereiro", descricao: "Montar relatório de performance das redes sociais de fevereiro.",
+    responsavel: "Yuri", prazo: "2026-03-07", prioridade: "Baixa", tags: ["Estratégia"],
+    clientId: "2", colunaId: "col-7",
+    etapas: [], comentarios: [], anexos: [], recorrente: true, frequencia: "Mensal", criadoEm: "2026-03-01",
+  },
+  {
+    id: "t8", titulo: "Campanha lançamento eco-bags", descricao: "Criar e subir campanha para o lançamento das novas eco-bags.",
+    responsavel: "Yuri", prazo: "2026-03-20", prioridade: "Urgente", tags: ["Tráfego Pago", "Conteúdo", "Design"],
+    clientId: "4", colunaId: "col-9",
+    etapas: [
+      { id: "e11", titulo: "Briefing criativo", responsavel: "Yuri", prazo: "2026-03-12", concluida: true },
+      { id: "e12", titulo: "Design dos criativos", responsavel: "Yuri", prazo: "2026-03-15", concluida: false },
+      { id: "e13", titulo: "Copywriting", responsavel: "Yuri", prazo: "2026-03-16", concluida: false },
+      { id: "e14", titulo: "Subir campanha", responsavel: "Yuri", prazo: "2026-03-18", concluida: false },
+    ],
+    comentarios: [
+      { id: "c3", usuario: "Yuri", texto: "Roberto quer foco em sustentabilidade na copy.", data: "2026-03-10" },
+    ],
+    anexos: [], recorrente: false, criadoEm: "2026-03-08",
+  },
+];
+
 export const MOCK_CLIENTS: Client[] = [
   {
     id: "1",

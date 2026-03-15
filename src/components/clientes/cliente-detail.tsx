@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { MOCK_CLIENTS, MOCK_BRAND_HUBS, type Client, type ClientStatus, type BrandHubData, type BrandColor } from "@/lib/mock-data";
+import { MOCK_CLIENTS, MOCK_BRAND_HUBS, MOCK_TASKS, type Client, type ClientStatus, type BrandHubData, type BrandColor, type Task, type TaskPriority } from "@/lib/mock-data";
 
 const TABS = [
   { id: "geral", label: "Dados Gerais" },
@@ -95,7 +95,7 @@ export default function ClienteDetail({ clientId }: { clientId: string }) {
         {activeTab === "geral" && <TabGeral client={client} />}
         {activeTab === "contrato" && <TabContrato client={client} />}
         {activeTab === "brand-hub" && <TabBrandHub clientId={clientId} />}
-        {activeTab === "tarefas" && <TabPlaceholder title="Tarefas" description="As tarefas vinculadas serão implementadas na Fase 4." />}
+        {activeTab === "tarefas" && <TabTarefas clientId={clientId} />}
         {activeTab === "financeiro" && <TabPlaceholder title="Financeiro" description="O módulo financeiro será implementado na Fase 5." />}
       </div>
     </>
@@ -265,6 +265,61 @@ function TabBrandHub({ clientId }: { clientId: string }) {
             </div>
           ))}
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Tab: Tarefas (embedded) ── */
+const PRIORITY_DOT: Record<TaskPriority, string> = {
+  Urgente: "bg-urgent",
+  Alta: "bg-warning",
+  Média: "bg-info",
+  Baixa: "bg-success",
+};
+
+function TabTarefas({ clientId }: { clientId: string }) {
+  const clientTasks = MOCK_TASKS.filter((t) => t.clientId === clientId);
+
+  if (clientTasks.length === 0) {
+    return (
+      <div className="bg-gradient-to-b from-surface to-[#141414] rounded-2xl border border-dashed border-border p-8 flex flex-col items-center text-center min-h-[200px]">
+        <p className="text-muted text-sm font-medium mb-1">Nenhuma tarefa vinculada</p>
+        <p className="text-muted-soft text-xs mb-4">Crie tarefas para este cliente no Kanban.</p>
+        <Link
+          href="/tarefas"
+          className="px-4 py-2 rounded-xl bg-gradient-to-t from-[#1a1a1a] to-[#2a2a2a] border border-border-hover text-sm font-medium text-foreground hover:border-[#3a3a3a] transition-colors"
+        >
+          Ir para Tarefas
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex justify-between items-center">
+        <p className="text-xs text-muted-soft">{clientTasks.length} tarefa{clientTasks.length > 1 ? "s" : ""}</p>
+        <Link href="/tarefas" className="text-xs text-muted-soft hover:text-muted transition-colors">
+          Ver no Kanban →
+        </Link>
+      </div>
+      <div className="bg-gradient-to-b from-surface to-[#141414] rounded-2xl border border-border overflow-hidden">
+        {clientTasks.map((task) => {
+          const isOverdue = new Date(task.prazo) < new Date();
+          return (
+            <div key={task.id} className="flex items-center px-5 py-3.5 border-b border-[#1a1a1a] last:border-b-0 gap-3 hover:bg-white/[0.02] transition-colors">
+              <span className={`w-2 h-2 rounded-full ${PRIORITY_DOT[task.prioridade]} shrink-0`} />
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] font-medium text-[#c8c8c8] truncate">{task.titulo}</p>
+                <p className="text-[10px] text-muted-soft mt-0.5">{task.responsavel} · {task.tags.slice(0, 2).join(", ")}</p>
+              </div>
+              <span className={`text-[11px] ${isOverdue ? "text-urgent font-medium" : "text-muted-soft"}`}>
+                {new Date(task.prazo).toLocaleDateString("pt-BR")}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
