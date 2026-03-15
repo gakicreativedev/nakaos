@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { MOCK_CLIENTS, type Client, type ClientStatus } from "@/lib/mock-data";
+import { MOCK_CLIENTS, MOCK_BRAND_HUBS, type Client, type ClientStatus, type BrandHubData, type BrandColor } from "@/lib/mock-data";
 
 const TABS = [
   { id: "geral", label: "Dados Gerais" },
@@ -94,7 +94,7 @@ export default function ClienteDetail({ clientId }: { clientId: string }) {
       <div className="flex-1 min-h-0">
         {activeTab === "geral" && <TabGeral client={client} />}
         {activeTab === "contrato" && <TabContrato client={client} />}
-        {activeTab === "brand-hub" && <TabPlaceholder title="Brand Hub" description="O Brand Hub deste cliente será implementado na Fase 3." />}
+        {activeTab === "brand-hub" && <TabBrandHub clientId={clientId} />}
         {activeTab === "tarefas" && <TabPlaceholder title="Tarefas" description="As tarefas vinculadas serão implementadas na Fase 4." />}
         {activeTab === "financeiro" && <TabPlaceholder title="Financeiro" description="O módulo financeiro será implementado na Fase 5." />}
       </div>
@@ -187,6 +187,81 @@ function TabContrato({ client }: { client: Client }) {
             <div key={s} className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[#141414] border border-border">
               <span className="w-1.5 h-1.5 rounded-full bg-success shrink-0" />
               <span className="text-sm text-[#c8c8c8]">{s}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Tab: Brand Hub (embedded) ── */
+function TabBrandHub({ clientId }: { clientId: string }) {
+  const brandHub = MOCK_BRAND_HUBS.find((bh) => bh.clientId === clientId);
+
+  if (!brandHub) {
+    return (
+      <div className="bg-gradient-to-b from-surface to-[#141414] rounded-2xl border border-dashed border-border p-8 flex flex-col items-center text-center min-h-[200px]">
+        <p className="text-muted text-sm font-medium mb-1">Nenhum Brand Hub criado</p>
+        <p className="text-muted-soft text-xs mb-4">Crie a identidade visual deste cliente.</p>
+        <Link
+          href={`/brand-hub/${clientId}`}
+          className="px-4 py-2 rounded-xl bg-gradient-to-t from-[#1a1a1a] to-[#2a2a2a] border border-border-hover text-sm font-medium text-foreground hover:border-[#3a3a3a] transition-colors"
+        >
+          + Criar Brand Hub
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      {/* Quick overview + link to full page */}
+      <div className="flex justify-between items-center">
+        <p className="text-xs text-muted-soft">
+          Atualizado em {new Date(brandHub.ultimaAtualizacao).toLocaleDateString("pt-BR")}
+        </p>
+        <Link
+          href={`/brand-hub/${clientId}`}
+          className="text-xs text-muted-soft hover:text-muted transition-colors"
+        >
+          Ver completo →
+        </Link>
+      </div>
+
+      {/* Color palette */}
+      <div className="bg-gradient-to-b from-surface to-[#141414] rounded-2xl border border-border p-5">
+        <h3 className="text-sm font-medium text-gradient mb-3">Paleta de Cores</h3>
+        <div className="flex gap-2">
+          {brandHub.cores.map((cor) => (
+            <div key={cor.hex} className="flex flex-col items-center gap-1.5">
+              <div className="w-12 h-12 rounded-xl border border-white/10" style={{ background: cor.hex }} />
+              <span className="text-[10px] text-muted-soft">{cor.nome}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Key info */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="bg-[#141414] rounded-2xl border border-border p-4">
+          <p className="text-[11px] font-medium text-muted uppercase tracking-wider mb-1">Tom de Voz</p>
+          <p className="text-sm text-[#c8c8c8]">{brandHub.tomDeVoz}</p>
+        </div>
+        <div className="bg-[#141414] rounded-2xl border border-border p-4">
+          <p className="text-[11px] font-medium text-muted uppercase tracking-wider mb-1">Slogan</p>
+          <p className="text-sm text-[#c8c8c8]">{brandHub.slogan}</p>
+        </div>
+      </div>
+
+      {/* Fonts */}
+      <div className="bg-gradient-to-b from-surface to-[#141414] rounded-2xl border border-border p-5">
+        <h3 className="text-sm font-medium text-gradient mb-3">Tipografia</h3>
+        <div className="flex gap-4">
+          {brandHub.fontes.map((f) => (
+            <div key={f.nome}>
+              <p className="text-sm text-[#c8c8c8] font-medium">{f.nome}</p>
+              <p className="text-[11px] text-muted-soft">{f.categoria}</p>
             </div>
           ))}
         </div>

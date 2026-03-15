@@ -19,6 +19,134 @@ export interface Client {
   criadoEm: string;
 }
 
+/* ── Brand Hub Types ── */
+export interface BrandColor {
+  nome: string;
+  hex: string;
+  rgb: string;
+  cmyk: string;
+}
+
+export interface BrandFont {
+  nome: string;
+  categoria: string;
+  downloadUrl: string;
+}
+
+export interface BrandLogo {
+  id: string;
+  categoria: "Principal" | "Monocromática" | "Negativa" | "Ícone" | "Horizontal" | "Vertical";
+  url: string;
+  linkExterno?: string;
+}
+
+export interface BrandHubData {
+  clientId: string;
+  logos: BrandLogo[];
+  cores: BrandColor[];
+  fontes: BrandFont[];
+  nicho: string;
+  publicoAlvo: string;
+  tomDeVoz: string;
+  slogan: string;
+  concorrentes: string;
+  restricoesVisuais: string;
+  ultimaAtualizacao: string;
+  historico: { data: string; usuario: string; descricao: string }[];
+}
+
+export const MOCK_BRAND_HUBS: BrandHubData[] = [
+  {
+    clientId: "1",
+    logos: [
+      { id: "l1", categoria: "Principal", url: "" },
+      { id: "l2", categoria: "Monocromática", url: "" },
+      { id: "l3", categoria: "Negativa", url: "" },
+      { id: "l4", categoria: "Ícone", url: "" },
+    ],
+    cores: [
+      { nome: "Verde Zen", hex: "#4A7C59", rgb: "74, 124, 89", cmyk: "40, 0, 28, 51" },
+      { nome: "Bege Suave", hex: "#F5F0E8", rgb: "245, 240, 232", cmyk: "0, 2, 5, 4" },
+      { nome: "Cinza Pedra", hex: "#6B6B6B", rgb: "107, 107, 107", cmyk: "0, 0, 0, 58" },
+      { nome: "Preto Zen", hex: "#1A1A1A", rgb: "26, 26, 26", cmyk: "0, 0, 0, 90" },
+    ],
+    fontes: [
+      { nome: "Playfair Display", categoria: "Títulos", downloadUrl: "https://fonts.google.com/specimen/Playfair+Display" },
+      { nome: "Inter", categoria: "Corpo", downloadUrl: "https://fonts.google.com/specimen/Inter" },
+    ],
+    nicho: "Bem-estar e meditação. Estúdio de yoga e práticas integrativas.",
+    publicoAlvo: "Mulheres 25-45 anos, classe AB, urbanas, interessadas em bem-estar e autoconhecimento.",
+    tomDeVoz: "Sereno, acolhedor e inspirador. Linguagem suave e positiva.",
+    slogan: "Encontre sua paz interior.",
+    concorrentes: "Espaço Nirvana, Yoga Flow Studio, Casa de Luz",
+    restricoesVisuais: "Evitar cores vibrantes/neon. Não usar tipografias pesadas ou agressivas.",
+    ultimaAtualizacao: "2026-03-10",
+    historico: [
+      { data: "2026-03-10", usuario: "Yuri", descricao: "Atualização do slogan" },
+      { data: "2026-02-15", usuario: "Yuri", descricao: "Adição de nova variação de logo" },
+      { data: "2025-09-01", usuario: "Yuri", descricao: "Criação inicial do Brand Hub" },
+    ],
+  },
+  {
+    clientId: "2",
+    logos: [
+      { id: "l5", categoria: "Principal", url: "" },
+      { id: "l6", categoria: "Ícone", url: "" },
+    ],
+    cores: [
+      { nome: "Marrom Café", hex: "#5C3D2E", rgb: "92, 61, 46", cmyk: "0, 34, 50, 64" },
+      { nome: "Creme", hex: "#F2E8D5", rgb: "242, 232, 213", cmyk: "0, 4, 12, 5" },
+      { nome: "Terracota", hex: "#C47B5A", rgb: "196, 123, 90", cmyk: "0, 37, 54, 23" },
+      { nome: "Verde Folha", hex: "#5A7247", rgb: "90, 114, 71", cmyk: "21, 0, 38, 55" },
+    ],
+    fontes: [
+      { nome: "Lora", categoria: "Títulos", downloadUrl: "https://fonts.google.com/specimen/Lora" },
+      { nome: "Nunito", categoria: "Corpo", downloadUrl: "https://fonts.google.com/specimen/Nunito" },
+    ],
+    nicho: "Cafeteria artesanal e torrefação própria.",
+    publicoAlvo: "Adultos 22-40 anos, apreciadores de café especial, urbanos e conectados.",
+    tomDeVoz: "Autêntico, próximo e apaixonado. Comunicação quente e convidativa.",
+    slogan: "Do grão à xícara, com alma.",
+    concorrentes: "Coffee Lab, Suplicy Cafés, Isso é Café",
+    restricoesVisuais: "Evitar tons frios (azul, roxo). Não usar imagens genéricas de banco de imagem.",
+    ultimaAtualizacao: "2026-02-20",
+    historico: [
+      { data: "2026-02-20", usuario: "Yuri", descricao: "Atualização da paleta de cores" },
+      { data: "2025-11-01", usuario: "Yuri", descricao: "Criação inicial do Brand Hub" },
+    ],
+  },
+  {
+    clientId: "4",
+    logos: [
+      { id: "l7", categoria: "Principal", url: "" },
+      { id: "l8", categoria: "Horizontal", url: "" },
+      { id: "l9", categoria: "Negativa", url: "" },
+    ],
+    cores: [
+      { nome: "Verde Floresta", hex: "#2D5016", rgb: "45, 80, 22", cmyk: "44, 0, 72, 69" },
+      { nome: "Verde Claro", hex: "#7CB342", rgb: "124, 179, 66", cmyk: "31, 0, 63, 30" },
+      { nome: "Areia", hex: "#E8DCC8", rgb: "232, 220, 200", cmyk: "0, 5, 14, 9" },
+      { nome: "Marrom Terra", hex: "#5D4037", rgb: "93, 64, 55", cmyk: "0, 31, 41, 64" },
+    ],
+    fontes: [
+      { nome: "Montserrat", categoria: "Títulos", downloadUrl: "https://fonts.google.com/specimen/Montserrat" },
+      { nome: "Open Sans", categoria: "Corpo", downloadUrl: "https://fonts.google.com/specimen/Open+Sans" },
+    ],
+    nicho: "Produtos sustentáveis e ecológicos para o dia a dia.",
+    publicoAlvo: "Consumidores conscientes 25-50 anos, preocupados com sustentabilidade e meio ambiente.",
+    tomDeVoz: "Responsável, transparente e esperançoso. Tom educativo sem ser pedante.",
+    slogan: "Viva verde, viva melhor.",
+    concorrentes: "Positiv.a, Use Orgânico, Beleaf",
+    restricoesVisuais: "Evitar plástico nas imagens. Não usar greenwashing. Manter autenticidade.",
+    ultimaAtualizacao: "2026-01-15",
+    historico: [
+      { data: "2026-01-15", usuario: "Yuri", descricao: "Revisão do tom de voz" },
+      { data: "2025-08-10", usuario: "Yuri", descricao: "Adição de fontes tipográficas" },
+      { data: "2025-06-01", usuario: "Yuri", descricao: "Criação inicial do Brand Hub" },
+    ],
+  },
+];
+
 export const MOCK_CLIENTS: Client[] = [
   {
     id: "1",
