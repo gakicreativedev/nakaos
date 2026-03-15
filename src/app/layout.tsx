@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 
@@ -11,6 +11,20 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   title: "Naka OS",
   description: "Sistema de Gestão - Gaki Marketing Digital",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Naka OS",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: "#0f0f0f",
 };
 
 export default function RootLayout({
@@ -20,6 +34,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
+      <head>
+        <link rel="apple-touch-icon" sizes="180x180" href="/logo-naka.svg" />
+      </head>
       <body className={`${poppins.variable} antialiased`}>
         {children}
       </body>

@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Magnifier, AltArrowRight, CloseCircle } from "@solar-icons/react";
+
 import { MOCK_CLIENTS, type ClientStatus } from "@/lib/mock-data";
 
 const STATUS_OPTIONS: { label: string; value: ClientStatus | "Todos" }[] = [
@@ -70,13 +72,7 @@ export default function ClientesList() {
       {/* Search & Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="flex-1 relative">
-          <svg
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted"
-            width="16" height="16" viewBox="0 0 20 20" fill="none"
-          >
-            <circle cx="9" cy="9" r="6" stroke="currentColor" strokeWidth="1.6" />
-            <path d="M13.5 13.5L17 17" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-          </svg>
+          <Magnifier size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
           <input
             type="text"
             placeholder="Buscar por nome..."
@@ -85,7 +81,7 @@ export default function ClientesList() {
             className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-surface border border-border text-sm text-foreground placeholder:text-muted-soft focus:outline-none focus:border-border-hover transition-colors"
           />
         </div>
-        <div className="flex gap-1.5">
+        <div className="flex gap-1.5 overflow-x-auto pb-1">
           {STATUS_OPTIONS.map((opt) => (
             <button
               key={opt.value}
@@ -146,9 +142,7 @@ export default function ClientesList() {
                   <p className="text-[11px] text-muted-soft">/mês</p>
                 </div>
                 <StatusBadge status={client.status} />
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" className="text-muted-soft shrink-0">
-                  <path d="M8 5L13 10L8 15" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                <AltArrowRight size={16} className="text-muted-soft shrink-0" />
               </Link>
             );
           })
@@ -170,9 +164,7 @@ function NewClientModal({ onClose }: { onClose: () => void }) {
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-lg font-semibold text-gradient">Novo Cliente</h2>
           <button onClick={onClose} className="text-muted hover:text-foreground transition-colors p-1">
-            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-              <path d="M5 5L15 15M15 5L5 15" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-            </svg>
+            <CloseCircle size={18} />
           </button>
         </div>
 

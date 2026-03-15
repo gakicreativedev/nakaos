@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { AltArrowLeft } from "@solar-icons/react";
 import { MOCK_CLIENTS, MOCK_BRAND_HUBS, MOCK_TASKS, MOCK_MOVIMENTACOES, type Client, type ClientStatus, type BrandHubData, type BrandColor, type Task, type TaskPriority, type Movimentacao } from "@/lib/mock-data";
 
 const TABS = [
@@ -55,9 +56,7 @@ export default function ClienteDetail({ clientId }: { clientId: string }) {
           href="/clientes"
           className="p-2 rounded-xl hover:bg-surface transition-colors text-muted"
         >
-          <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-            <path d="M13 15L8 10L13 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+          <AltArrowLeft size={18} />
         </Link>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3">

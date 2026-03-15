@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { Refresh, ChatRoundDots } from "@solar-icons/react";
 import {
   MOCK_CLIENTS,
   MOCK_KANBAN_COLUMNS,
@@ -83,17 +84,12 @@ function TaskCard({ task, onClick }: { task: Task; onClick: () => void }) {
           )}
           {/* Recurrent indicator */}
           {task.recorrente && (
-            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" className="text-muted-soft">
-              <path d="M1 8C1 4.13 4.13 1 8 1C11.87 1 15 4.13 15 8C15 11.87 11.87 15 8 15C5.95 15 4.1 14.1 2.85 12.65" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-              <path d="M1 13V9.5H4.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <Refresh size={12} className="text-muted-soft" />
           )}
           {/* Comments */}
           {task.comentarios.length > 0 && (
             <span className="text-[10px] text-muted-soft flex items-center gap-0.5">
-              <svg width="10" height="10" viewBox="0 0 16 16" fill="none">
-                <path d="M13 10C13 10.35 12.86 10.69 12.6 10.95C12.35 11.2 12 11.35 11.65 11.35H5.35L3 13.7V4.7C3 4.35 3.14 4.01 3.4 3.75C3.65 3.5 4 3.35 4.35 3.35H11.65C12 3.35 12.35 3.5 12.6 3.75C12.86 4.01 13 4.35 13 4.7V10Z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <ChatRoundDots size={10} />
               {task.comentarios.length}
             </span>
           )}

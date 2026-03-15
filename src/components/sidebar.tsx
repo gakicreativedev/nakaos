@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -41,9 +42,13 @@ export default function Sidebar() {
           }`}
         >
           {!collapsed && (
-            <span className="text-gradient text-2xl font-light italic tracking-tight">
-              Naka
-            </span>
+            <Image
+              src="/logo-naka.svg"
+              alt="Naka OS"
+              width={80}
+              height={41}
+              priority
+            />
           )}
           <button
             onClick={() => setCollapsed((p) => !p)}
@@ -92,7 +97,7 @@ export default function Sidebar() {
       </aside>
 
       {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#191919] border-t border-border flex justify-around py-2 px-1">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#191919]/95 backdrop-blur-lg border-t border-border flex justify-around py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] px-1">
         {NAV_ITEMS.filter((item) => item.id !== "settings").map((item) => {
           const isActive =
             item.href === "/"

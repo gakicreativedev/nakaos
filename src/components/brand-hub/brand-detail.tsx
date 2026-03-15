@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { AltArrowLeft, AddCircle, Gallery } from "@solar-icons/react";
 import { MOCK_CLIENTS, MOCK_BRAND_HUBS, type BrandHubData, type BrandColor } from "@/lib/mock-data";
 
 /* ── Color Card with copy-on-click ── */
@@ -55,11 +56,7 @@ function LogoCard({ logo }: { logo: { id: string; categoria: string; url: string
           <img src={logo.url} alt={logo.categoria} className="max-h-full max-w-full object-contain p-4" />
         ) : (
           <div className="text-muted-soft text-xs flex flex-col items-center gap-2">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="1.4" />
-              <circle cx="8.5" cy="8.5" r="2" stroke="currentColor" strokeWidth="1.4" />
-              <path d="M21 15L16 10L5 21" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <Gallery size={24} />
             Upload
           </div>
         )}
@@ -153,9 +150,7 @@ export default function BrandDetail({ clientId }: { clientId: string }) {
             <LogoCard key={logo.id} logo={logo} />
           ))}
           <button className="h-32 rounded-2xl border border-dashed border-border hover:border-border-hover text-muted-soft text-xs flex flex-col items-center justify-center gap-2 transition-colors">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M10 4V16M4 10H16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-            </svg>
+            <AddCircle size={20} />
             Nova variação
           </button>
         </div>
@@ -219,9 +214,7 @@ function BackHeader({ clientName }: { clientName: string }) {
   return (
     <div className="flex items-center gap-3">
       <Link href="/brand-hub" className="p-2 rounded-xl hover:bg-surface transition-colors text-muted">
-        <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-          <path d="M13 15L8 10L13 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        <AltArrowLeft size={18} />
       </Link>
       <div>
         <h1 className="text-2xl font-semibold text-gradient tracking-tight">{clientName}</h1>

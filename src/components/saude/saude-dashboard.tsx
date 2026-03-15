@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { CloseCircle, ArrowUp, ArrowDown } from "@solar-icons/react";
 import {
   MOCK_MOVIMENTACOES,
   MOCK_CLIENTS,
@@ -78,9 +79,7 @@ function NewMovimentacaoModal({ onClose }: { onClose: () => void }) {
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-lg font-semibold text-gradient">Nova Movimentação</h2>
           <button onClick={onClose} className="text-muted hover:text-foreground transition-colors p-1">
-            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-              <path d="M5 5L15 15M15 5L5 15" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-            </svg>
+            <CloseCircle size={18} />
           </button>
         </div>
 
@@ -327,17 +326,9 @@ export default function SaudeDashboard() {
               const isReceita = mov.categoria === "Receita";
               const client = MOCK_CLIENTS.find((c) => c.id === mov.clientId);
               return (
-                <div key={mov.id} className="flex items-center px-5 py-3.5 border-b border-[#1a1a1a] last:border-b-0 gap-3 hover:bg-white/[0.02] transition-colors">
+                <div key={mov.id} className="flex items-center px-3 sm:px-5 py-3.5 border-b border-[#1a1a1a] last:border-b-0 gap-2 sm:gap-3 hover:bg-white/[0.02] transition-colors">
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isReceita ? "bg-success/10" : "bg-urgent/10"}`}>
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                      <path
-                        d={isReceita ? "M8 3V13M5 6L8 3L11 6" : "M8 13V3M5 10L8 13L11 10"}
-                        stroke={isReceita ? "#4ade80" : "#ef4444"}
-                        strokeWidth="1.6"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
+                    {isReceita ? <ArrowUp size={14} color="#4ade80" /> : <ArrowDown size={14} color="#ef4444" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[13px] font-medium text-[#c8c8c8] truncate">{mov.descricao}</p>
@@ -346,8 +337,10 @@ export default function SaudeDashboard() {
                       {client && ` · ${client.nome}`}
                     </p>
                   </div>
-                  <CategoriaBadge categoria={mov.categoria} />
-                  <StatusBadge status={mov.status} />
+                  <div className="hidden sm:flex items-center gap-2">
+                    <CategoriaBadge categoria={mov.categoria} />
+                    <StatusBadge status={mov.status} />
+                  </div>
                   <span className={`text-sm font-semibold whitespace-nowrap ${isReceita ? "text-success" : "text-urgent"}`}>
                     {isReceita ? "+" : "-"} R$ {mov.valor.toLocaleString("pt-BR")}
                   </span>

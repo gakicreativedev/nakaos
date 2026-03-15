@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { CloseCircle, CheckCircle } from "@solar-icons/react";
 import { MOCK_CLIENTS, type Task, type TaskPriority } from "@/lib/mock-data";
 
 const PRIORITY_COLORS: Record<TaskPriority, { bg: string; text: string }> = {
@@ -45,9 +46,7 @@ export default function TaskModal({ task, onClose }: { task: Task; onClose: () =
             <h2 className="text-lg font-semibold text-gradient">{task.titulo}</h2>
           </div>
           <button onClick={onClose} className="text-muted hover:text-foreground transition-colors p-1 shrink-0">
-            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-              <path d="M5 5L15 15M15 5L5 15" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-            </svg>
+            <CloseCircle size={18} />
           </button>
         </div>
 
@@ -117,9 +116,7 @@ export default function TaskModal({ task, onClose }: { task: Task; onClose: () =
                       }`}
                     >
                       {etapa.concluida && (
-                        <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
-                          <path d="M2 6L5 9L10 3" stroke="#4ade80" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
+                        <CheckCircle size={10} color="#4ade80" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">

@@ -65,10 +65,10 @@ export default function HomePage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-semibold text-gradient tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-semibold text-gradient tracking-tight">
             Bem-vindo de volta
           </h1>
-          <p className="text-muted text-sm mt-1">
+          <p className="text-muted text-xs sm:text-sm mt-1">
             Aqui está o que está acontecendo com seus projetos hoje.
           </p>
         </div>

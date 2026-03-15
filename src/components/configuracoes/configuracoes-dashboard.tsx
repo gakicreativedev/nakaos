@@ -2,58 +2,18 @@
 
 import { useState } from "react";
 import {
+  Shield,
+  Bell,
+  UserPlus,
+  TrashBinMinimalistic,
+  Pen2,
+} from "@solar-icons/react";
+import {
   MOCK_USUARIOS,
   ROLE_PERMISSIONS,
   type Usuario,
   type UserRole,
 } from "@/lib/mock-data";
-
-/* ── Icon helpers ── */
-function ShieldIcon({ className = "w-5 h-5" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-    </svg>
-  );
-}
-
-function BellIcon({ className = "w-5 h-5" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-    </svg>
-  );
-}
-
-function UserPlusIcon({ className = "w-5 h-5" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-      <circle cx="8.5" cy="7" r="4" />
-      <line x1="20" y1="8" x2="20" y2="14" />
-      <line x1="23" y1="11" x2="17" y2="11" />
-    </svg>
-  );
-}
-
-function TrashIcon({ className = "w-4 h-4" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="3 6 5 6 21 6" />
-      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-    </svg>
-  );
-}
-
-function PencilIcon({ className = "w-4 h-4" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-    </svg>
-  );
-}
 
 /* ── Tabs ── */
 type TabId = "usuarios" | "permissoes" | "alertas" | "geral";
@@ -205,7 +165,7 @@ function UsersTab({
           onClick={onNewUser}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-foreground text-background text-sm font-medium hover:opacity-90 transition-opacity"
         >
-          <UserPlusIcon className="w-4 h-4" />
+          <UserPlus size={16} />
           Novo Usuário
         </button>
       </div>
@@ -283,7 +243,7 @@ function UsersTab({
                       className="p-2 rounded-lg text-muted hover:text-foreground hover:bg-white/5 transition-colors"
                       title="Editar permissão"
                     >
-                      <PencilIcon />
+                      <Pen2 size={16} />
                     </button>
                     <button
                       onClick={() => toggleAtivo(user.id)}
@@ -294,7 +254,7 @@ function UsersTab({
                       }`}
                       title={user.ativo ? "Desativar" : "Reativar"}
                     >
-                      {user.ativo ? <TrashIcon /> : <UserPlusIcon className="w-4 h-4" />}
+                      {user.ativo ? <TrashBinMinimalistic size={16} /> : <UserPlus size={16} />}
                     </button>
                   </>
                 )}
@@ -347,7 +307,7 @@ function PermissoesTab() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3 mb-2">
-        <ShieldIcon className="w-5 h-5 text-purple-400" />
+        <Shield size={20} className="text-purple-400" />
         <div>
           <h2 className="text-base font-semibold text-foreground">Níveis de Permissão</h2>
           <p className="text-xs text-muted">Cada nível define o que o usuário pode acessar e modificar no sistema.</p>
@@ -471,7 +431,7 @@ function AlertasTab({
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3 mb-2">
-        <BellIcon className="w-5 h-5 text-yellow-400" />
+        <Bell size={20} className="text-yellow-400" />
         <div>
           <h2 className="text-base font-semibold text-foreground">Configuração de Alertas</h2>
           <p className="text-xs text-muted">Personalize as notificações para cada usuário.</p>

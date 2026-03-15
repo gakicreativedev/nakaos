@@ -33,6 +33,15 @@ body {
   background: var(--color-background);
   color: var(--color-foreground);
   font-family: var(--font-sans), sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* PWA safe areas */
+@supports (padding: env(safe-area-inset-top)) {
+  body {
+    padding-top: env(safe-area-inset-top);
+  }
 }
 
 /* Gradient text utility */
