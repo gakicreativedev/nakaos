@@ -325,6 +325,70 @@ export const MOCK_MOVIMENTACOES: Movimentacao[] = [
   { id: "m16", valor: 6900, categoria: "Despesa Operacional", data: "2026-01-31", descricao: "Despesas Janeiro", clientId: null, status: "Pago", criadoEm: "2026-01-01" },
 ];
 
+/* ── Configurações (Users & Permissions) Types ── */
+export type UserRole = "Admin" | "Editor" | "Visualizador";
+
+export interface Usuario {
+  id: string;
+  nome: string;
+  email: string;
+  cargo: string;
+  role: UserRole;
+  avatar?: string;
+  ativo: boolean;
+  criadoEm: string;
+  ultimoAcesso: string;
+  alertas: {
+    tarefasAtrasadas: boolean;
+    renovacaoContratos: boolean;
+    pagamentosPendentes: boolean;
+    novosComentarios: boolean;
+  };
+}
+
+export const MOCK_USUARIOS: Usuario[] = [
+  {
+    id: "u1",
+    nome: "Yuri",
+    email: "yuri@gaki.com.br",
+    cargo: "Sócio / Diretor Criativo",
+    role: "Admin",
+    ativo: true,
+    criadoEm: "2025-01-01",
+    ultimoAcesso: "2026-03-15",
+    alertas: { tarefasAtrasadas: true, renovacaoContratos: true, pagamentosPendentes: true, novosComentarios: true },
+  },
+  {
+    id: "u2",
+    nome: "Sócio 2",
+    email: "socio2@gaki.com.br",
+    cargo: "Sócio / Diretor Comercial",
+    role: "Admin",
+    ativo: true,
+    criadoEm: "2025-01-01",
+    ultimoAcesso: "2026-03-14",
+    alertas: { tarefasAtrasadas: true, renovacaoContratos: true, pagamentosPendentes: true, novosComentarios: false },
+  },
+];
+
+export const ROLE_PERMISSIONS: Record<UserRole, { label: string; descricao: string; permissoes: string[] }> = {
+  Admin: {
+    label: "Administrador",
+    descricao: "Acesso total ao sistema, incluindo configurações e gestão de usuários.",
+    permissoes: ["Gerenciar usuários", "Editar configurações", "Acessar Saúde", "Gerenciar clientes", "Gerenciar tarefas", "Editar Brand Hub"],
+  },
+  Editor: {
+    label: "Editor",
+    descricao: "Pode criar e editar conteúdos, tarefas e clientes, mas sem acesso a financeiro e configurações.",
+    permissoes: ["Gerenciar clientes", "Gerenciar tarefas", "Editar Brand Hub"],
+  },
+  Visualizador: {
+    label: "Visualizador",
+    descricao: "Acesso somente leitura. Pode visualizar informações mas não editar.",
+    permissoes: ["Visualizar clientes", "Visualizar tarefas", "Visualizar Brand Hub"],
+  },
+};
+
 export const MOCK_CLIENTS: Client[] = [
   {
     id: "1",
