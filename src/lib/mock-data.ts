@@ -290,6 +290,41 @@ export const MOCK_TASKS: Task[] = [
   },
 ];
 
+/* ── Saúde (Financial) Types ── */
+export type MovimentacaoCategoria = "Receita" | "Despesa Operacional" | "Fornecedor" | "Pró-labore" | "Investimento";
+export type MovimentacaoStatus = "Agendado" | "Pago" | "Pendente" | "Atrasado" | "Cancelado";
+
+export interface Movimentacao {
+  id: string;
+  valor: number;
+  categoria: MovimentacaoCategoria;
+  data: string;
+  descricao: string;
+  clientId: string | null;
+  status: MovimentacaoStatus;
+  criadoEm: string;
+}
+
+export const MOCK_MOVIMENTACOES: Movimentacao[] = [
+  { id: "m1", valor: 4500, categoria: "Receita", data: "2026-03-05", descricao: "Mensalidade Studio Zen - Março", clientId: "1", status: "Pago", criadoEm: "2026-03-01" },
+  { id: "m2", valor: 3200, categoria: "Receita", data: "2026-03-05", descricao: "Mensalidade Café Origem - Março", clientId: "2", status: "Pago", criadoEm: "2026-03-01" },
+  { id: "m3", valor: 5000, categoria: "Receita", data: "2026-03-05", descricao: "Mensalidade Floresta Verde - Março", clientId: "4", status: "Pago", criadoEm: "2026-03-01" },
+  { id: "m4", valor: 2800, categoria: "Receita", data: "2026-03-10", descricao: "Mensalidade TechVida - Março", clientId: "3", status: "Pendente", criadoEm: "2026-03-01" },
+  { id: "m5", valor: 350, categoria: "Despesa Operacional", data: "2026-03-01", descricao: "Canva Pro - Anual rateado", clientId: null, status: "Pago", criadoEm: "2026-03-01" },
+  { id: "m6", valor: 199, categoria: "Despesa Operacional", data: "2026-03-01", descricao: "Meta Business Suite - Mensal", clientId: null, status: "Pago", criadoEm: "2026-03-01" },
+  { id: "m7", valor: 89, categoria: "Despesa Operacional", data: "2026-03-01", descricao: "Google Workspace", clientId: null, status: "Pago", criadoEm: "2026-03-01" },
+  { id: "m8", valor: 1200, categoria: "Fornecedor", data: "2026-03-08", descricao: "Fotógrafo - Sessão Café Origem", clientId: "2", status: "Pago", criadoEm: "2026-03-02" },
+  { id: "m9", valor: 3000, categoria: "Pró-labore", data: "2026-03-15", descricao: "Pró-labore Yuri - Março", clientId: null, status: "Agendado", criadoEm: "2026-03-01" },
+  { id: "m10", valor: 3000, categoria: "Pró-labore", data: "2026-03-15", descricao: "Pró-labore Sócio 2 - Março", clientId: null, status: "Agendado", criadoEm: "2026-03-01" },
+  { id: "m11", valor: 500, categoria: "Investimento", data: "2026-03-02", descricao: "Curso de tráfego pago avançado", clientId: null, status: "Pago", criadoEm: "2026-02-28" },
+  { id: "m12", valor: 800, categoria: "Fornecedor", data: "2026-03-20", descricao: "Designer freelancer - Floresta Verde", clientId: "4", status: "Agendado", criadoEm: "2026-03-10" },
+  // Previous months for chart data
+  { id: "m13", valor: 12700, categoria: "Receita", data: "2026-02-05", descricao: "Receitas Fevereiro", clientId: null, status: "Pago", criadoEm: "2026-02-01" },
+  { id: "m14", valor: 7800, categoria: "Despesa Operacional", data: "2026-02-28", descricao: "Despesas Fevereiro", clientId: null, status: "Pago", criadoEm: "2026-02-01" },
+  { id: "m15", valor: 11500, categoria: "Receita", data: "2026-01-05", descricao: "Receitas Janeiro", clientId: null, status: "Pago", criadoEm: "2026-01-01" },
+  { id: "m16", valor: 6900, categoria: "Despesa Operacional", data: "2026-01-31", descricao: "Despesas Janeiro", clientId: null, status: "Pago", criadoEm: "2026-01-01" },
+];
+
 export const MOCK_CLIENTS: Client[] = [
   {
     id: "1",

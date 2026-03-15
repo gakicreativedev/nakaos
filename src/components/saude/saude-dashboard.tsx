@@ -1,0 +1,376 @@
+"use client";
+
+import { useState, useMemo } from "react";
+import {
+  MOCK_MOVIMENTACOES,
+  MOCK_CLIENTS,
+  type Movimentacao,
+  type MovimentacaoCategoria,
+  type MovimentacaoStatus,
+} from "@/lib/mock-data";
+
+const CATEGORIA_COLORS: Record<MovimentacaoCategoria, { bg: string; text: string }> = {
+  Receita: { bg: "rgba(34,197,94,0.15)", text: "#4ade80" },
+  "Despesa Operacional": { bg: "rgba(239,68,68,0.15)", text: "#ef4444" },
+  Fornecedor: { bg: "rgba(245,158,11,0.15)", text: "#f59e0b" },
+  "Pró-labore": { bg: "rgba(168,85,247,0.15)", text: "#c084fc" },
+  Investimento: { bg: "rgba(59,130,246,0.15)", text: "#60a5fa" },
+};
+
+const STATUS_COLORS: Record<MovimentacaoStatus, { bg: string; text: string }> = {
+  Pago: { bg: "rgba(34,197,94,0.15)", text: "#4ade80" },
+  Pendente: { bg: "rgba(234,179,8,0.15)", text: "#facc15" },
+  Agendado: { bg: "rgba(59,130,246,0.15)", text: "#60a5fa" },
+  Atrasado: { bg: "rgba(239,68,68,0.15)", text: "#ef4444" },
+  Cancelado: { bg: "rgba(107,114,128,0.15)", text: "#9ca3af" },
+};
+
+function CategoriaBadge({ categoria }: { categoria: MovimentacaoCategoria }) {
+  const c = CATEGORIA_COLORS[categoria];
+  return (
+    <span className="px-2.5 py-1 rounded-lg text-[10px] font-medium" style={{ background: c.bg, color: c.text }}>
+      {categoria}
+    </span>
+  );
+}
+
+function StatusBadge({ status }: { status: MovimentacaoStatus }) {
+  const c = STATUS_COLORS[status];
+  return (
+    <span className="px-2.5 py-1 rounded-lg text-[10px] font-medium" style={{ background: c.bg, color: c.text }}>
+      {status}
+    </span>
+  );
+}
+
+/* ── Simple Bar Chart (CSS-based) ── */
+function BarChart({ data }: { data: { label: string; entradas: number; saidas: number }[] }) {
+  const max = Math.max(...data.flatMap((d) => [d.entradas, d.saidas]));
+  return (
+    <div className="flex items-end gap-3 h-32">
+      {data.map((d) => (
+        <div key={d.label} className="flex-1 flex flex-col items-center gap-1">
+          <div className="flex gap-1 items-end w-full justify-center h-24">
+            <div
+              className="w-4 rounded-t bg-success/60 transition-all"
+              style={{ height: `${(d.entradas / max) * 100}%` }}
+              title={`Entradas: R$ ${d.entradas.toLocaleString("pt-BR")}`}
+            />
+            <div
+              className="w-4 rounded-t bg-urgent/60 transition-all"
+              style={{ height: `${(d.saidas / max) * 100}%` }}
+              title={`Saídas: R$ ${d.saidas.toLocaleString("pt-BR")}`}
+            />
+          </div>
+          <span className="text-[10px] text-muted-soft">{d.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ── New Movimentação Modal ── */
+function NewMovimentacaoModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-lg bg-[#1a1a1a] border border-border rounded-2xl p-6 max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-lg font-semibold text-gradient">Nova Movimentação</h2>
+          <button onClick={onClose} className="text-muted hover:text-foreground transition-colors p-1">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+              <path d="M5 5L15 15M15 5L5 15" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            </svg>
+          </button>
+        </div>
+
+        <form className="flex flex-col gap-4" onSubmit={(e) => { e.preventDefault(); onClose(); }}>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-medium text-muted block mb-1.5">Valor <span className="text-urgent">*</span></label>
+              <input type="text" placeholder="R$ 0,00" required className="w-full px-3.5 py-2.5 rounded-xl bg-[#141414] border border-border text-sm text-foreground placeholder:text-muted-soft focus:outline-none focus:border-border-hover transition-colors" />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted block mb-1.5">Data <span className="text-urgent">*</span></label>
+              <input type="date" required className="w-full px-3.5 py-2.5 rounded-xl bg-[#141414] border border-border text-sm text-foreground focus:outline-none focus:border-border-hover transition-colors" />
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-muted block mb-1.5">Categoria <span className="text-urgent">*</span></label>
+            <select className="w-full px-3.5 py-2.5 rounded-xl bg-[#141414] border border-border text-sm text-foreground focus:outline-none focus:border-border-hover transition-colors">
+              <option value="">Selecionar...</option>
+              <option value="Receita">Receita</option>
+              <option value="Despesa Operacional">Despesa Operacional</option>
+              <option value="Fornecedor">Fornecedor</option>
+              <option value="Pró-labore">Pró-labore</option>
+              <option value="Investimento">Investimento</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-muted block mb-1.5">Descrição</label>
+            <input type="text" placeholder="Detalhamento do lançamento" className="w-full px-3.5 py-2.5 rounded-xl bg-[#141414] border border-border text-sm text-foreground placeholder:text-muted-soft focus:outline-none focus:border-border-hover transition-colors" />
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-muted block mb-1.5">Cliente vinculado</label>
+            <select className="w-full px-3.5 py-2.5 rounded-xl bg-[#141414] border border-border text-sm text-foreground focus:outline-none focus:border-border-hover transition-colors">
+              <option value="">Nenhum (interno)</option>
+              {MOCK_CLIENTS.map((c) => (
+                <option key={c.id} value={c.id}>{c.nome}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-muted block mb-1.5">Status</label>
+            <select className="w-full px-3.5 py-2.5 rounded-xl bg-[#141414] border border-border text-sm text-foreground focus:outline-none focus:border-border-hover transition-colors">
+              <option value="Pendente">Pendente</option>
+              <option value="Pago">Pago</option>
+              <option value="Agendado">Agendado</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-muted block mb-1.5">Comprovante</label>
+            <div className="w-full px-3.5 py-6 rounded-xl border border-dashed border-border text-center text-muted-soft text-xs cursor-pointer hover:border-border-hover transition-colors">
+              Clique para anexar arquivo
+            </div>
+          </div>
+
+          <div className="flex gap-3 mt-2">
+            <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-border text-sm text-muted-soft hover:text-muted hover:border-border-hover transition-all">
+              Cancelar
+            </button>
+            <button type="submit" className="flex-1 py-2.5 rounded-xl bg-gradient-to-t from-[#1a1a1a] to-[#2a2a2a] border border-border-hover text-sm font-medium text-foreground hover:border-[#3a3a3a] transition-colors">
+              Criar Movimentação
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ── Main Dashboard ── */
+export default function SaudeDashboard() {
+  const [filterCategoria, setFilterCategoria] = useState<MovimentacaoCategoria | "Todas">("Todas");
+  const [filterStatus, setFilterStatus] = useState<MovimentacaoStatus | "Todos">("Todos");
+  const [search, setSearch] = useState("");
+  const [showModal, setShowModal] = useState(false);
+
+  const currentMonth = MOCK_MOVIMENTACOES.filter((m) => m.data.startsWith("2026-03"));
+
+  const totalEntradas = currentMonth
+    .filter((m) => m.categoria === "Receita" && m.status !== "Cancelado")
+    .reduce((sum, m) => sum + m.valor, 0);
+
+  const totalSaidas = currentMonth
+    .filter((m) => m.categoria !== "Receita" && m.status !== "Cancelado")
+    .reduce((sum, m) => sum + m.valor, 0);
+
+  const saldo = totalEntradas - totalSaidas;
+
+  // Per-client revenue
+  const clientRevenue = useMemo(() => {
+    return MOCK_CLIENTS
+      .filter((c) => c.status === "Ativo" || c.status === "Onboarding")
+      .map((c) => ({
+        nome: c.nome,
+        valor: currentMonth
+          .filter((m) => m.clientId === c.id && m.categoria === "Receita")
+          .reduce((sum, m) => sum + m.valor, 0),
+      }))
+      .filter((c) => c.valor > 0);
+  }, []);
+
+  // Chart data
+  const chartData = [
+    { label: "Jan", entradas: 11500, saidas: 6900 },
+    { label: "Fev", entradas: 12700, saidas: 7800 },
+    { label: "Mar", entradas: totalEntradas, saidas: totalSaidas },
+  ];
+
+  // Filtered movimentações
+  const filtered = currentMonth.filter((m) => {
+    if (filterCategoria !== "Todas" && m.categoria !== filterCategoria) return false;
+    if (filterStatus !== "Todos" && m.status !== filterStatus) return false;
+    if (search && !m.descricao.toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  });
+
+  const upcoming = currentMonth.filter((m) => {
+    const d = new Date(m.data);
+    const now = new Date();
+    const diff = Math.ceil((d.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    return diff > 0 && diff <= 7 && (m.status === "Agendado" || m.status === "Pendente");
+  });
+
+  return (
+    <>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold text-gradient tracking-tight">Saúde</h1>
+          <p className="text-muted text-sm mt-1">Visão financeira de março 2026</p>
+        </div>
+        <button
+          onClick={() => setShowModal(true)}
+          className="px-4 py-2.5 rounded-xl bg-gradient-to-t from-[#1a1a1a] to-[#2a2a2a] border border-border-hover text-sm font-medium text-foreground hover:border-[#3a3a3a] transition-colors"
+        >
+          + Nova Movimentação
+        </button>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <SummaryCard label="Saldo do Período" value={saldo} accent={saldo >= 0 ? "success" : "urgent"} />
+        <SummaryCard label="Total Entradas" value={totalEntradas} accent="success" />
+        <SummaryCard label="Total Saídas" value={totalSaidas} accent="urgent" />
+        <SummaryCard label="Resultado" value={totalEntradas > 0 ? ((saldo / totalEntradas) * 100) : 0} isPercent accent={saldo >= 0 ? "success" : "urgent"} />
+      </div>
+
+      {/* Charts + Client Revenue */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
+        {/* Bar chart */}
+        <div className="bg-gradient-to-b from-surface to-[#141414] rounded-2xl border border-border p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-medium text-gradient">Entradas x Saídas</h2>
+            <div className="flex gap-3">
+              <span className="flex items-center gap-1.5 text-[10px] text-muted-soft">
+                <span className="w-2.5 h-2.5 rounded bg-success/60" /> Entradas
+              </span>
+              <span className="flex items-center gap-1.5 text-[10px] text-muted-soft">
+                <span className="w-2.5 h-2.5 rounded bg-urgent/60" /> Saídas
+              </span>
+            </div>
+          </div>
+          <BarChart data={chartData} />
+        </div>
+
+        {/* Client revenue */}
+        <div className="bg-gradient-to-b from-surface to-[#141414] rounded-2xl border border-border p-5">
+          <h2 className="text-sm font-medium text-gradient mb-4">Receita por Cliente</h2>
+          <div className="flex flex-col gap-2.5">
+            {clientRevenue.map((c) => (
+              <div key={c.nome} className="flex items-center justify-between">
+                <span className="text-xs text-[#c8c8c8]">{c.nome}</span>
+                <span className="text-xs font-medium text-success">
+                  R$ {c.valor.toLocaleString("pt-BR")}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Upcoming alerts */}
+          {upcoming.length > 0 && (
+            <div className="mt-5 pt-4 border-t border-border">
+              <p className="text-[11px] font-medium text-muted uppercase tracking-wider mb-2">Vencendo em 7 dias</p>
+              {upcoming.map((m) => (
+                <div key={m.id} className="flex items-center justify-between py-1.5">
+                  <span className="text-xs text-muted-soft truncate mr-2">{m.descricao}</span>
+                  <span className="text-xs text-warning font-medium whitespace-nowrap">
+                    R$ {m.valor.toLocaleString("pt-BR")}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Movimentações List */}
+      <div>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
+          <h2 className="text-sm font-medium text-gradient">Movimentações</h2>
+          <div className="flex gap-2 flex-wrap">
+            <input
+              type="text"
+              placeholder="Buscar..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="px-3 py-1.5 rounded-lg bg-surface border border-border text-[11px] text-foreground placeholder:text-muted-soft focus:outline-none focus:border-border-hover w-36"
+            />
+            <select
+              value={filterCategoria}
+              onChange={(e) => setFilterCategoria(e.target.value as MovimentacaoCategoria | "Todas")}
+              className="px-3 py-1.5 rounded-lg bg-surface border border-border text-[11px] text-muted-soft focus:outline-none focus:border-border-hover"
+            >
+              <option value="Todas">Todas categorias</option>
+              <option value="Receita">Receita</option>
+              <option value="Despesa Operacional">Despesa Operacional</option>
+              <option value="Fornecedor">Fornecedor</option>
+              <option value="Pró-labore">Pró-labore</option>
+              <option value="Investimento">Investimento</option>
+            </select>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value as MovimentacaoStatus | "Todos")}
+              className="px-3 py-1.5 rounded-lg bg-surface border border-border text-[11px] text-muted-soft focus:outline-none focus:border-border-hover"
+            >
+              <option value="Todos">Todos status</option>
+              <option value="Pago">Pago</option>
+              <option value="Pendente">Pendente</option>
+              <option value="Agendado">Agendado</option>
+              <option value="Atrasado">Atrasado</option>
+              <option value="Cancelado">Cancelado</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-b from-surface to-[#141414] rounded-2xl border border-border overflow-hidden">
+          {filtered.length === 0 ? (
+            <div className="px-5 py-8 text-center text-muted-soft text-xs">Nenhuma movimentação encontrada.</div>
+          ) : (
+            filtered.map((mov) => {
+              const isReceita = mov.categoria === "Receita";
+              const client = MOCK_CLIENTS.find((c) => c.id === mov.clientId);
+              return (
+                <div key={mov.id} className="flex items-center px-5 py-3.5 border-b border-[#1a1a1a] last:border-b-0 gap-3 hover:bg-white/[0.02] transition-colors">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isReceita ? "bg-success/10" : "bg-urgent/10"}`}>
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                      <path
+                        d={isReceita ? "M8 3V13M5 6L8 3L11 6" : "M8 13V3M5 10L8 13L11 10"}
+                        stroke={isReceita ? "#4ade80" : "#ef4444"}
+                        strokeWidth="1.6"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-medium text-[#c8c8c8] truncate">{mov.descricao}</p>
+                    <p className="text-[10px] text-muted-soft mt-0.5">
+                      {new Date(mov.data).toLocaleDateString("pt-BR")}
+                      {client && ` · ${client.nome}`}
+                    </p>
+                  </div>
+                  <CategoriaBadge categoria={mov.categoria} />
+                  <StatusBadge status={mov.status} />
+                  <span className={`text-sm font-semibold whitespace-nowrap ${isReceita ? "text-success" : "text-urgent"}`}>
+                    {isReceita ? "+" : "-"} R$ {mov.valor.toLocaleString("pt-BR")}
+                  </span>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+
+      {showModal && <NewMovimentacaoModal onClose={() => setShowModal(false)} />}
+    </>
+  );
+}
+
+function SummaryCard({ label, value, accent, isPercent = false }: { label: string; value: number; accent: string; isPercent?: boolean }) {
+  const colorClass = accent === "success" ? "text-success" : "text-urgent";
+  return (
+    <div className="bg-gradient-to-b from-surface to-[#141414] rounded-2xl border border-border p-5">
+      <p className="text-[11px] font-medium text-muted uppercase tracking-wider">{label}</p>
+      <p className={`text-2xl font-semibold mt-2 tracking-tight ${colorClass}`}>
+        {isPercent ? `${value.toFixed(1)}%` : `R$ ${Math.abs(value).toLocaleString("pt-BR")}`}
+      </p>
+    </div>
+  );
+}

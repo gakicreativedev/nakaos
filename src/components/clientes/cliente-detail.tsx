@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { MOCK_CLIENTS, MOCK_BRAND_HUBS, MOCK_TASKS, type Client, type ClientStatus, type BrandHubData, type BrandColor, type Task, type TaskPriority } from "@/lib/mock-data";
+import { MOCK_CLIENTS, MOCK_BRAND_HUBS, MOCK_TASKS, MOCK_MOVIMENTACOES, type Client, type ClientStatus, type BrandHubData, type BrandColor, type Task, type TaskPriority, type Movimentacao } from "@/lib/mock-data";
 
 const TABS = [
   { id: "geral", label: "Dados Gerais" },
@@ -96,7 +96,7 @@ export default function ClienteDetail({ clientId }: { clientId: string }) {
         {activeTab === "contrato" && <TabContrato client={client} />}
         {activeTab === "brand-hub" && <TabBrandHub clientId={clientId} />}
         {activeTab === "tarefas" && <TabTarefas clientId={clientId} />}
-        {activeTab === "financeiro" && <TabPlaceholder title="Financeiro" description="O módulo financeiro será implementado na Fase 5." />}
+        {activeTab === "financeiro" && <TabFinanceiro clientId={clientId} />}
       </div>
     </>
   );
@@ -325,12 +325,57 @@ function TabTarefas({ clientId }: { clientId: string }) {
   );
 }
 
-/* ── Placeholder Tab ── */
-function TabPlaceholder({ title, description }: { title: string; description: string }) {
+/* ── Tab: Financeiro (embedded) ── */
+function TabFinanceiro({ clientId }: { clientId: string }) {
+  const movs = MOCK_MOVIMENTACOES.filter((m) => m.clientId === clientId);
+  const totalReceita = movs.filter((m) => m.categoria === "Receita").reduce((s, m) => s + m.valor, 0);
+  const totalDespesa = movs.filter((m) => m.categoria !== "Receita").reduce((s, m) => s + m.valor, 0);
+
+  if (movs.length === 0) {
+    return (
+      <div className="bg-gradient-to-b from-surface to-[#141414] rounded-2xl border border-dashed border-border p-8 flex flex-col items-center text-center min-h-[200px]">
+        <p className="text-muted text-sm font-medium mb-1">Nenhuma movimentação</p>
+        <p className="text-muted-soft text-xs mb-4">Não há lançamentos financeiros para este cliente.</p>
+        <Link href="/saude" className="px-4 py-2 rounded-xl bg-gradient-to-t from-[#1a1a1a] to-[#2a2a2a] border border-border-hover text-sm font-medium text-foreground hover:border-[#3a3a3a] transition-colors">
+          Ir para Saúde
+        </Link>
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-gradient-to-b from-surface to-[#141414] rounded-2xl border border-border p-8 flex flex-col items-center justify-center text-center min-h-[200px]">
-      <p className="text-muted text-sm font-medium mb-1">{title}</p>
-      <p className="text-muted-soft text-xs">{description}</p>
+    <div className="flex flex-col gap-4">
+      <div className="flex justify-between items-center">
+        <div className="flex gap-4">
+          <div>
+            <p className="text-[10px] text-muted uppercase tracking-wider">Receita</p>
+            <p className="text-lg font-semibold text-success">R$ {totalReceita.toLocaleString("pt-BR")}</p>
+          </div>
+          <div>
+            <p className="text-[10px] text-muted uppercase tracking-wider">Despesas</p>
+            <p className="text-lg font-semibold text-urgent">R$ {totalDespesa.toLocaleString("pt-BR")}</p>
+          </div>
+        </div>
+        <Link href="/saude" className="text-xs text-muted-soft hover:text-muted transition-colors">
+          Ver completo →
+        </Link>
+      </div>
+      <div className="bg-gradient-to-b from-surface to-[#141414] rounded-2xl border border-border overflow-hidden">
+        {movs.map((mov) => {
+          const isReceita = mov.categoria === "Receita";
+          return (
+            <div key={mov.id} className="flex items-center px-5 py-3 border-b border-[#1a1a1a] last:border-b-0 gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-[#c8c8c8] truncate">{mov.descricao}</p>
+                <p className="text-[10px] text-muted-soft mt-0.5">{new Date(mov.data).toLocaleDateString("pt-BR")} · {mov.status}</p>
+              </div>
+              <span className={`text-sm font-semibold ${isReceita ? "text-success" : "text-urgent"}`}>
+                {isReceita ? "+" : "-"} R$ {mov.valor.toLocaleString("pt-BR")}
+              </span>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
