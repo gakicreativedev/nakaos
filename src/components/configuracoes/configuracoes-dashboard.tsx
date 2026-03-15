@@ -295,7 +295,7 @@ function PermissoesTab() {
   const allPermissions = [
     "Gerenciar usuários",
     "Editar configurações",
-    "Acessar Saúde",
+    "Acessar Finanças",
     "Gerenciar clientes",
     "Gerenciar tarefas",
     "Editar Brand Hub",
@@ -372,7 +372,7 @@ function PermissoesTab() {
               { modulo: "Clientes", perms: ["Completo", "Editar", "Leitura"] },
               { modulo: "Tarefas", perms: ["Completo", "Editar", "Leitura"] },
               { modulo: "Brand Hub", perms: ["Completo", "Editar", "Leitura"] },
-              { modulo: "Saúde", perms: ["Completo", "Bloqueado", "Bloqueado"] },
+              { modulo: "Finanças", perms: ["Completo", "Bloqueado", "Bloqueado"] },
               { modulo: "Configurações", perms: ["Completo", "Bloqueado", "Bloqueado"] },
             ].map((row) => (
               <tr key={row.modulo} className="border-b border-border/50">
@@ -536,7 +536,7 @@ function GeralTab() {
           <div className="flex items-center justify-between py-2 border-b border-border/50">
             <div>
               <p className="text-sm text-foreground">Moeda padrão</p>
-              <p className="text-xs text-muted/60">Utilizada no módulo Saúde e contratos.</p>
+              <p className="text-xs text-muted/60">Utilizada no módulo Finanças e contratos.</p>
             </div>
             <select className="bg-background border border-border rounded-lg px-3 py-1.5 text-sm text-foreground focus:outline-none">
               <option>BRL (R$)</option>

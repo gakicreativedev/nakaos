@@ -335,8 +335,8 @@ function TabFinanceiro({ clientId }: { clientId: string }) {
       <div className="bg-gradient-to-b from-surface to-[#141414] rounded-2xl border border-dashed border-border p-8 flex flex-col items-center text-center min-h-[200px]">
         <p className="text-muted text-sm font-medium mb-1">Nenhuma movimentação</p>
         <p className="text-muted-soft text-xs mb-4">Não há lançamentos financeiros para este cliente.</p>
-        <Link href="/saude" className="px-4 py-2 rounded-xl bg-gradient-to-t from-[#1a1a1a] to-[#2a2a2a] border border-border-hover text-sm font-medium text-foreground hover:border-[#3a3a3a] transition-colors">
-          Ir para Saúde
+        <Link href="/financas" className="px-4 py-2 rounded-xl bg-gradient-to-t from-[#1a1a1a] to-[#2a2a2a] border border-border-hover text-sm font-medium text-foreground hover:border-[#3a3a3a] transition-colors">
+          Ir para Finanças
         </Link>
       </div>
     );
@@ -355,7 +355,7 @@ function TabFinanceiro({ clientId }: { clientId: string }) {
             <p className="text-lg font-semibold text-urgent">R$ {totalDespesa.toLocaleString("pt-BR")}</p>
           </div>
         </div>
-        <Link href="/saude" className="text-xs text-muted-soft hover:text-muted transition-colors">
+        <Link href="/financas" className="text-xs text-muted-soft hover:text-muted transition-colors">
           Ver completo →
         </Link>
       </div>

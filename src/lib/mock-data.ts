@@ -290,7 +290,7 @@ export const MOCK_TASKS: Task[] = [
   },
 ];
 
-/* ── Saúde (Financial) Types ── */
+/* ── Finanças Types ── */
 export type MovimentacaoCategoria = "Receita" | "Despesa Operacional" | "Fornecedor" | "Pró-labore" | "Investimento";
 export type MovimentacaoStatus = "Agendado" | "Pago" | "Pendente" | "Atrasado" | "Cancelado";
 
@@ -375,7 +375,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, { label: string; descricao: stri
   Admin: {
     label: "Administrador",
     descricao: "Acesso total ao sistema, incluindo configurações e gestão de usuários.",
-    permissoes: ["Gerenciar usuários", "Editar configurações", "Acessar Saúde", "Gerenciar clientes", "Gerenciar tarefas", "Editar Brand Hub"],
+    permissoes: ["Gerenciar usuários", "Editar configurações", "Acessar Finanças", "Gerenciar clientes", "Gerenciar tarefas", "Editar Brand Hub"],
   },
   Editor: {
     label: "Editor",

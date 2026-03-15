@@ -5,7 +5,7 @@ import {
   UsersGroupRounded,
   ChecklistMinimalistic,
   PaletteRound,
-  Health,
+  WalletMoney,
   Settings,
   AltArrowLeft,
 } from "@solar-icons/react";
@@ -27,7 +27,7 @@ export function BrandHubIcon({ className }: { className?: string }) {
 }
 
 export function FinanceIcon({ className }: { className?: string }) {
-  return <Health size={20} className={className} />;
+  return <WalletMoney size={20} className={className} />;
 }
 
 export function SettingsIcon({ className }: { className?: string }) {

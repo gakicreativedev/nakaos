@@ -1,10 +1,10 @@
 import AppShell from "@/components/app-shell";
-import KanbanBoard from "@/components/tarefas/kanban-board";
+import TarefasOverview from "@/components/tarefas/tarefas-overview";
 
 export default function TarefasPage() {
   return (
     <AppShell>
-      <KanbanBoard />
+      <TarefasOverview />
     </AppShell>
   );
 }

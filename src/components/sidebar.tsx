@@ -19,7 +19,7 @@ const NAV_ITEMS = [
   { id: "clients", label: "Clientes", href: "/clientes", icon: ClientsIcon },
   { id: "tarefas", label: "Tarefas", href: "/tarefas", icon: TasksIcon },
   { id: "brand-hub", label: "Brand Hub", href: "/brand-hub", icon: BrandHubIcon },
-  { id: "saude", label: "Saúde", href: "/saude", icon: FinanceIcon },
+  { id: "financas", label: "Finanças", href: "/financas", icon: FinanceIcon },
   { id: "settings", label: "Configurações", href: "/configuracoes", icon: SettingsIcon },
 ];
 

@@ -15,17 +15,17 @@ const STATUS_OPTIONS: { label: string; value: ClientStatus | "Todos" }[] = [
 ];
 
 function StatusBadge({ status }: { status: ClientStatus }) {
-  const colors: Record<ClientStatus, { bg: string; text: string }> = {
-    Ativo: { bg: "rgba(34,197,94,0.15)", text: "#4ade80" },
-    Onboarding: { bg: "rgba(168,85,247,0.15)", text: "#c084fc" },
-    Pausado: { bg: "rgba(234,179,8,0.15)", text: "#facc15" },
-    Encerrado: { bg: "rgba(107,114,128,0.15)", text: "#9ca3af" },
+  const colors: Record<ClientStatus, { bg: string; text: string; border: string }> = {
+    Ativo: { bg: "rgba(255,255,255,0.15)", text: "#ffffff", border: "rgba(255,255,255,0.2)" },
+    Onboarding: { bg: "rgba(168,85,247,0.25)", text: "#e9d5ff", border: "rgba(168,85,247,0.3)" },
+    Pausado: { bg: "rgba(234,179,8,0.25)", text: "#fef08a", border: "rgba(234,179,8,0.3)" },
+    Encerrado: { bg: "rgba(107,114,128,0.25)", text: "#d1d5db", border: "rgba(107,114,128,0.3)" },
   };
   const c = colors[status];
   return (
     <span
-      className="px-3 py-1 rounded-lg text-xs font-medium tracking-wide"
-      style={{ background: c.bg, color: c.text }}
+      className="px-2.5 py-1 rounded-xl text-[10px] font-semibold tracking-wide backdrop-blur-sm"
+      style={{ background: c.bg, color: c.text, border: `1px solid ${c.border}` }}
     >
       {status}
     </span>
@@ -98,14 +98,14 @@ export default function ClientesList() {
         </div>
       </div>
 
-      {/* Client List */}
-      <div className="bg-gradient-to-b from-surface to-[#141414] rounded-2xl border border-border overflow-hidden">
-        {filtered.length === 0 ? (
-          <div className="px-5 py-12 text-center text-muted-soft text-sm">
-            Nenhum cliente encontrado.
-          </div>
-        ) : (
-          filtered.map((client, i) => {
+      {/* Client Cards */}
+      {filtered.length === 0 ? (
+        <div className="px-5 py-12 text-center text-muted-soft text-sm">
+          Nenhum cliente encontrado.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {filtered.map((client, i) => {
             const renewalDate = new Date(client.dataRenovacao);
             const now = new Date();
             const daysUntilRenewal = Math.ceil((renewalDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
@@ -115,39 +115,79 @@ export default function ClientesList() {
               <Link
                 key={client.id}
                 href={`/clientes/${client.id}`}
-                className="flex items-center px-5 py-4 border-b border-[#1a1a1a] gap-4 hover:bg-white/[0.02] transition-colors cursor-pointer"
+                className="group rounded-3xl overflow-hidden border border-white/[0.06] hover:border-white/[0.12] transition-all hover:shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
               >
-                <div
-                  className={`w-10 h-10 rounded-xl bg-gradient-to-br ${AVATAR_COLORS[i % AVATAR_COLORS.length]} flex items-center justify-center text-sm font-semibold text-muted shrink-0`}
-                >
-                  {client.nome[0]}
+                {/* Top section - green gradient with contract value */}
+                <div className="relative h-[110px] bg-gradient-to-br from-[#2d6b1e] via-[#4a9e2f] to-[#7bcf45] p-5 flex flex-col justify-between overflow-hidden">
+                  {/* Shine effect */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-60" />
+                  <div className="absolute top-0 left-0 w-[60%] h-full bg-gradient-to-r from-white/10 to-transparent rounded-br-[60%]" />
+
+                  <div className="relative z-10 flex items-start justify-between">
+                    <div className="w-9 h-9 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center text-xs font-bold text-white">
+                      {client.nome[0]}
+                    </div>
+                    <StatusBadge status={client.status} />
+                  </div>
+
+                  <div className="relative z-10 text-right">
+                    <p className="text-2xl font-bold text-white tracking-tight leading-none">
+                      R$ {client.valorMensal.toLocaleString("pt-BR")}
+                    </p>
+                    <p className="text-[10px] text-white/70 uppercase tracking-widest mt-1 font-medium">
+                      Valor mensal
+                    </p>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-[#c8c8c8] truncate">{client.nome}</p>
-                    {showRenewalAlert && (
-                      <span className="text-[10px] px-2 py-0.5 rounded-md bg-warning/15 text-warning font-medium shrink-0">
-                        Renova em {daysUntilRenewal}d
+
+                {/* Accent line between sections */}
+                <div className="h-[2px] bg-gradient-to-r from-[#4a9e2f] via-[#7bcf45] to-[#4a9e2f]" />
+
+                {/* Bottom section - dark with client info */}
+                <div className="bg-[#111111] p-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <p className="text-[15px] font-semibold text-foreground/90 group-hover:text-foreground transition-colors">
+                        {client.nome}
+                      </p>
+                      <p className="text-[11px] text-muted-soft mt-0.5">
+                        {client.responsavel}
+                      </p>
+                    </div>
+                    <div className="w-8 h-8 rounded-xl bg-white/[0.04] flex items-center justify-center text-muted-soft group-hover:text-foreground group-hover:bg-white/[0.08] transition-all">
+                      <AltArrowRight size={16} />
+                    </div>
+                  </div>
+
+                  {/* Services */}
+                  <div className="flex flex-wrap gap-1.5 mb-3">
+                    {client.servicosContratados.slice(0, 2).map((s) => (
+                      <span
+                        key={s}
+                        className="text-[10px] px-2 py-1 rounded-lg bg-white/[0.04] text-muted-soft border border-white/[0.04]"
+                      >
+                        {s}
+                      </span>
+                    ))}
+                    {client.servicosContratados.length > 2 && (
+                      <span className="text-[10px] px-2 py-1 rounded-lg bg-white/[0.04] text-muted-soft">
+                        +{client.servicosContratados.length - 2}
                       </span>
                     )}
                   </div>
-                  <p className="text-[11px] text-muted-soft mt-0.5">
-                    {client.responsavel} · {client.servicosContratados.length} serviço{client.servicosContratados.length > 1 ? "s" : ""}
-                  </p>
+
+                  {/* Renewal alert */}
+                  {showRenewalAlert && (
+                    <div className="text-[10px] px-2.5 py-1.5 rounded-xl bg-warning/10 text-warning font-medium border border-warning/10 inline-block">
+                      Renova em {daysUntilRenewal} dias
+                    </div>
+                  )}
                 </div>
-                <div className="hidden sm:block text-right mr-2">
-                  <p className="text-sm font-medium text-[#c8c8c8]">
-                    R$ {client.valorMensal.toLocaleString("pt-BR")}
-                  </p>
-                  <p className="text-[11px] text-muted-soft">/mês</p>
-                </div>
-                <StatusBadge status={client.status} />
-                <AltArrowRight size={16} className="text-muted-soft shrink-0" />
               </Link>
             );
-          })
-        )}
-      </div>
+          })}
+        </div>
+      )}
 
       {/* New Client Modal */}
       {showNewModal && <NewClientModal onClose={() => setShowNewModal(false)} />}

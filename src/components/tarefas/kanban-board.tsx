@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Refresh, ChatRoundDots } from "@solar-icons/react";
+import { Refresh, ChatRoundDots, AltArrowLeft } from "@solar-icons/react";
 import {
   MOCK_CLIENTS,
   MOCK_KANBAN_COLUMNS,
@@ -159,9 +159,15 @@ function Column({
 }
 
 /* ── Main Kanban Board ── */
-export default function KanbanBoard() {
+export default function KanbanBoard({
+  initialClientId,
+  onBack,
+}: {
+  initialClientId?: string;
+  onBack?: () => void;
+}) {
   const activeClients = MOCK_CLIENTS.filter((c) => c.status === "Ativo" || c.status === "Onboarding");
-  const [selectedClientId, setSelectedClientId] = useState(activeClients[0]?.id || "");
+  const [selectedClientId, setSelectedClientId] = useState(initialClientId || activeClients[0]?.id || "");
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [tasks, setTasks] = useState(MOCK_TASKS);
   const [filterPriority, setFilterPriority] = useState<TaskPriority | "Todas">("Todas");
@@ -189,12 +195,22 @@ export default function KanbanBoard() {
     <>
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-gradient tracking-tight">Tarefas</h1>
-          <p className="text-muted text-sm mt-1">
-            {tasks.filter((t) => t.clientId === selectedClientId).length} tarefas para{" "}
-            {MOCK_CLIENTS.find((c) => c.id === selectedClientId)?.nome}
-          </p>
+        <div className="flex items-center gap-3">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="p-2 rounded-xl hover:bg-surface transition-colors text-muted hover:text-foreground"
+            >
+              <AltArrowLeft size={20} />
+            </button>
+          )}
+          <div>
+            <h1 className="text-xl sm:text-2xl font-semibold text-gradient tracking-tight">Tarefas</h1>
+            <p className="text-muted text-xs sm:text-sm mt-1">
+              {tasks.filter((t) => t.clientId === selectedClientId).length} tarefas para{" "}
+              {MOCK_CLIENTS.find((c) => c.id === selectedClientId)?.nome}
+            </p>
+          </div>
         </div>
         <button className="px-4 py-2.5 rounded-xl bg-gradient-to-t from-[#1a1a1a] to-[#2a2a2a] border border-border-hover text-sm font-medium text-foreground hover:border-[#3a3a3a] transition-colors">
           + Nova Tarefa
