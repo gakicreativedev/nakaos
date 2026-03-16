@@ -104,3 +104,13 @@ export async function getUsuarios() {
     alertas: schema.usuarios.alertas,
   }).from(schema.usuarios);
 }
+
+export async function getUsuarioByEmail(email: string) {
+  const [user] = await db.select().from(schema.usuarios).where(eq(schema.usuarios.email, email)).limit(1);
+  return user ?? null;
+}
+
+export async function getUsuarioById(id: string) {
+  const [user] = await db.select().from(schema.usuarios).where(eq(schema.usuarios.id, id)).limit(1);
+  return user ?? null;
+}

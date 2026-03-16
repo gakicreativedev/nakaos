@@ -4,11 +4,11 @@ import { getUsuarios } from "@/lib/queries";
 import { requireAuth } from "@/lib/require-auth";
 
 export default async function ConfiguracoesPage() {
-  await requireAuth();
+  const session = await requireAuth();
   const usuarios = await getUsuarios();
   return (
     <AppShell>
-      <ConfiguracoesDashboard usuarios={usuarios} />
+      <ConfiguracoesDashboard usuarios={usuarios} currentUserRole={session.role} currentUserId={session.userId} />
     </AppShell>
   );
 }
