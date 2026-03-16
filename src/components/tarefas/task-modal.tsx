@@ -2,21 +2,21 @@
 
 import { useState } from "react";
 import { CloseCircle, CheckCircle } from "@solar-icons/react";
-import { MOCK_CLIENTS, type Task, type TaskPriority } from "@/lib/mock-data";
+import type { Client, Task } from "@/lib/types";
 
-const PRIORITY_COLORS: Record<TaskPriority, { bg: string; text: string }> = {
+const PRIORITY_COLORS: Record<string, { bg: string; text: string }> = {
   Urgente: { bg: "rgba(239,68,68,0.15)", text: "#ef4444" },
   Alta: { bg: "rgba(245,158,11,0.15)", text: "#f59e0b" },
   Média: { bg: "rgba(59,130,246,0.15)", text: "#60a5fa" },
   Baixa: { bg: "rgba(34,197,94,0.15)", text: "#4ade80" },
 };
 
-export default function TaskModal({ task, onClose }: { task: Task; onClose: () => void }) {
+export default function TaskModal({ task, clients, onClose }: { task: Task; clients: Client[]; onClose: () => void }) {
   const [newComment, setNewComment] = useState("");
-  const client = MOCK_CLIENTS.find((c) => c.id === task.clientId);
+  const client = clients.find((c) => c.id === task.clientId);
   const etapasDone = task.etapas.filter((e) => e.concluida).length;
   const etapasTotal = task.etapas.length;
-  const pc = PRIORITY_COLORS[task.prioridade];
+  const pc = PRIORITY_COLORS[task.prioridade] ?? { bg: "rgba(107,114,128,0.15)", text: "#9ca3af" };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

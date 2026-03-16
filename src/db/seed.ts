@@ -8,6 +8,7 @@
 
 import { config } from "dotenv";
 config({ path: ".env.local" });
+import { hash } from "bcryptjs";
 import { drizzle } from "drizzle-orm/libsql";
 import { createClient } from "@libsql/client";
 import * as schema from "./schema";
@@ -207,14 +208,15 @@ async function seed() {
   console.log("  ✓ Movimentações");
 
   /* ── Usuários ── */
+  const defaultPassword = await hash("gaki2026", 10);
   await db.insert(schema.usuarios).values([
     {
-      id: "u1", nome: "Yuri", email: "yuri@gaki.com.br", cargo: "Sócio / Diretor Criativo", role: "Admin",
+      id: "u1", nome: "Yuri", email: "yuri@gaki.com.br", senhaHash: defaultPassword, cargo: "Sócio / Diretor Criativo", role: "Admin",
       ativo: true, criadoEm: "2025-01-01", ultimoAcesso: "2026-03-15",
       alertas: { tarefasAtrasadas: true, renovacaoContratos: true, pagamentosPendentes: true, novosComentarios: true },
     },
     {
-      id: "u2", nome: "Sócio 2", email: "socio2@gaki.com.br", cargo: "Sócio / Diretor Comercial", role: "Admin",
+      id: "u2", nome: "Sócio 2", email: "socio2@gaki.com.br", senhaHash: defaultPassword, cargo: "Sócio / Diretor Comercial", role: "Admin",
       ativo: true, criadoEm: "2025-01-01", ultimoAcesso: "2026-03-14",
       alertas: { tarefasAtrasadas: true, renovacaoContratos: true, pagamentosPendentes: true, novosComentarios: false },
     },

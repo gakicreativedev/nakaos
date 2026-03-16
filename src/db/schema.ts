@@ -140,6 +140,7 @@ export const usuarios = sqliteTable("usuarios", {
   id: text("id").primaryKey(),
   nome: text("nome").notNull(),
   email: text("email").notNull().unique(),
+  senhaHash: text("senha_hash").notNull(),
   cargo: text("cargo").notNull(),
   role: text("role", { enum: ["Admin", "Editor", "Visualizador"] }).notNull(),
   avatar: text("avatar"),

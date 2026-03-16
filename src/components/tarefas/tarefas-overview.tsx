@@ -2,34 +2,38 @@
 
 import { useState } from "react";
 import { AltArrowRight } from "@solar-icons/react";
-import {
-  MOCK_CLIENTS,
-  MOCK_TASKS,
-  MOCK_KANBAN_COLUMNS,
-  type TaskPriority,
-} from "@/lib/mock-data";
+import type { Client, Task, KanbanColumn, TaskPriority } from "@/lib/types";
 import KanbanBoard from "./kanban-board";
 
-const PRIORITY_COLORS: Record<TaskPriority, string> = {
+const PRIORITY_COLORS: Record<string, string> = {
   Urgente: "bg-urgent",
   Alta: "bg-warning",
   Média: "bg-info",
   Baixa: "bg-success",
 };
 
-export default function TarefasOverview() {
+interface TarefasOverviewProps {
+  clients: Client[];
+  tasks: Task[];
+  columns: KanbanColumn[];
+}
+
+export default function TarefasOverview({ clients, tasks, columns }: TarefasOverviewProps) {
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
 
   if (selectedClientId) {
     return (
       <KanbanBoard
+        clients={clients}
+        tasks={tasks}
+        columns={columns}
         initialClientId={selectedClientId}
         onBack={() => setSelectedClientId(null)}
       />
     );
   }
 
-  const activeClients = MOCK_CLIENTS.filter(
+  const activeClients = clients.filter(
     (c) => c.status === "Ativo" || c.status === "Onboarding"
   );
 
@@ -48,8 +52,8 @@ export default function TarefasOverview() {
       {/* Client Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         {activeClients.map((client) => {
-          const clientTasks = MOCK_TASKS.filter((t) => t.clientId === client.id);
-          const columns = MOCK_KANBAN_COLUMNS.filter((c) => c.clientId === client.id);
+          const clientTasks = tasks.filter((t) => t.clientId === client.id);
+          const clientColumns = columns.filter((c) => c.clientId === client.id);
           const totalTasks = clientTasks.length;
 
           // Count by priority
@@ -65,7 +69,7 @@ export default function TarefasOverview() {
           const overdue = clientTasks.filter(
             (t) =>
               new Date(t.prazo) < new Date() &&
-              !columns.find(
+              !clientColumns.find(
                 (c) =>
                   c.id === t.colunaId &&
                   c.titulo.toLowerCase().includes("aprovado")
@@ -85,7 +89,7 @@ export default function TarefasOverview() {
             totalEtapas > 0 ? Math.round((doneEtapas / totalEtapas) * 100) : 0;
 
           // Tasks per column summary
-          const columnSummary = columns
+          const columnSummary = clientColumns
             .sort((a, b) => a.ordem - b.ordem)
             .map((col) => ({
               titulo: col.titulo,
@@ -172,7 +176,7 @@ export default function TarefasOverview() {
                         className="flex items-center gap-1.5 text-[11px] text-muted-soft"
                       >
                         <span
-                          className={`w-2 h-2 rounded-full ${PRIORITY_COLORS[p]}`}
+                          className={`w-2 h-2 rounded-full ${PRIORITY_COLORS[p] ?? "bg-muted"}`}
                         />
                         {count}
                       </span>

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { AltArrowLeft, AddCircle, Gallery } from "@solar-icons/react";
-import { MOCK_CLIENTS, MOCK_BRAND_HUBS, type BrandHubData, type BrandColor } from "@/lib/mock-data";
+import type { Client, BrandHubData, BrandColor } from "@/lib/types";
 
 /* ── Color Card with copy-on-click ── */
 function ColorCard({ cor }: { cor: BrandColor }) {
@@ -117,10 +117,13 @@ function TextSection({ label, value }: { label: string; value: string }) {
 }
 
 /* ── Main Component ── */
-export default function BrandDetail({ clientId }: { clientId: string }) {
-  const client = MOCK_CLIENTS.find((c) => c.id === clientId);
-  const brandHub = MOCK_BRAND_HUBS.find((bh) => bh.clientId === clientId);
+interface BrandDetailProps {
+  client: Client;
+  brandHub: BrandHubData;
+  clients: Client[];
+}
 
+export default function BrandDetail({ client, brandHub, clients }: BrandDetailProps) {
   if (!client) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-muted-soft">

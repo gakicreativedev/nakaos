@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { MOCK_CLIENTS, MOCK_BRAND_HUBS } from "@/lib/mock-data";
+import type { Client, BrandHubData } from "@/lib/types";
 
 /* Gradient backgrounds for cards that don't have a cover image yet */
 const CARD_GRADIENTS = [
@@ -12,13 +12,18 @@ const CARD_GRADIENTS = [
   "from-[#a855f7]/60 via-[#4a2a6a]/40 to-transparent",
 ];
 
-export default function BrandGallery() {
-  const clientsWithBrandHub = MOCK_CLIENTS.filter((c) =>
-    MOCK_BRAND_HUBS.some((bh) => bh.clientId === c.id)
+interface BrandGalleryProps {
+  clients: Client[];
+  brandHubs: BrandHubData[];
+}
+
+export default function BrandGallery({ clients, brandHubs }: BrandGalleryProps) {
+  const clientsWithBrandHub = clients.filter((c) =>
+    brandHubs.some((bh) => bh.clientId === c.id)
   );
 
-  const clientsWithoutBrandHub = MOCK_CLIENTS.filter(
-    (c) => !MOCK_BRAND_HUBS.some((bh) => bh.clientId === c.id)
+  const clientsWithoutBrandHub = clients.filter(
+    (c) => !brandHubs.some((bh) => bh.clientId === c.id)
   );
 
   return (
@@ -34,7 +39,7 @@ export default function BrandGallery() {
       {/* Gallery Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {clientsWithBrandHub.map((client, i) => {
-          const brandHub = MOCK_BRAND_HUBS.find((bh) => bh.clientId === client.id)!;
+          const brandHub = brandHubs.find((bh) => bh.clientId === client.id)!;
           const primaryColor = brandHub.cores[0]?.hex || "#333";
           const secondaryColor = brandHub.cores[1]?.hex || "#222";
 

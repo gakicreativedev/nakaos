@@ -8,12 +8,8 @@ import {
   TrashBinMinimalistic,
   Pen2,
 } from "@solar-icons/react";
-import {
-  MOCK_USUARIOS,
-  ROLE_PERMISSIONS,
-  type Usuario,
-  type UserRole,
-} from "@/lib/mock-data";
+import type { Usuario, UserRole } from "@/lib/types";
+import { ROLE_PERMISSIONS } from "@/lib/types";
 
 /* ── Tabs ── */
 type TabId = "usuarios" | "permissoes" | "alertas" | "geral";
@@ -26,8 +22,8 @@ const TABS: { id: TabId; label: string }[] = [
 ];
 
 /* ── Role badge color ── */
-function roleBadge(role: UserRole) {
-  const map: Record<UserRole, string> = {
+function roleBadge(role: string) {
+  const map: Record<string, string> = {
     Admin: "bg-purple-500/20 text-purple-400",
     Editor: "bg-blue-500/20 text-blue-400",
     Visualizador: "bg-gray-500/20 text-gray-400",
@@ -79,9 +75,13 @@ function NewUserModal({ onClose }: { onClose: () => void }) {
 }
 
 /* ── Main Component ── */
-export default function ConfiguracoesDashboard() {
+interface ConfiguracoesDashboardProps {
+  usuarios: Usuario[];
+}
+
+export default function ConfiguracoesDashboard({ usuarios: initialUsuarios }: ConfiguracoesDashboardProps) {
   const [activeTab, setActiveTab] = useState<TabId>("usuarios");
-  const [usuarios, setUsuarios] = useState<Usuario[]>(MOCK_USUARIOS);
+  const [usuarios, setUsuarios] = useState<Usuario[]>(initialUsuarios);
   const [showNewUser, setShowNewUser] = useState(false);
 
   return (
@@ -142,9 +142,9 @@ function UsersTab({
   onNewUser: () => void;
 }) {
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editRole, setEditRole] = useState<UserRole>("Editor");
+  const [editRole, setEditRole] = useState<string>("Editor");
 
-  function handleRoleChange(userId: string, newRole: UserRole) {
+  function handleRoleChange(userId: string, newRole: string) {
     setUsuarios(
       usuarios.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
     );
@@ -411,17 +411,17 @@ function AlertasTab({
   usuarios: Usuario[];
   setUsuarios: (u: Usuario[]) => void;
 }) {
-  function toggleAlerta(userId: string, key: keyof Usuario["alertas"]) {
+  function toggleAlerta(userId: string, key: string) {
     setUsuarios(
-      usuarios.map((u) =>
-        u.id === userId
-          ? { ...u, alertas: { ...u.alertas, [key]: !u.alertas[key] } }
-          : u
-      )
+      usuarios.map((u) => {
+        if (u.id !== userId || !u.alertas) return u;
+        const alertas = u.alertas as Record<string, boolean>;
+        return { ...u, alertas: { ...u.alertas, [key]: !alertas[key] } };
+      })
     );
   }
 
-  const alertTypes: { key: keyof Usuario["alertas"]; label: string; descricao: string }[] = [
+  const alertTypes: { key: string; label: string; descricao: string }[] = [
     { key: "tarefasAtrasadas", label: "Tarefas Atrasadas", descricao: "Notificar quando uma tarefa passar do prazo." },
     { key: "renovacaoContratos", label: "Renovação de Contratos", descricao: "Alerta 30 dias antes do vencimento." },
     { key: "pagamentosPendentes", label: "Pagamentos Pendentes", descricao: "Notificar sobre pagamentos não confirmados." },
@@ -463,12 +463,12 @@ function AlertasTab({
                 <button
                   onClick={() => toggleAlerta(user.id, alert.key)}
                   className={`relative w-11 h-6 rounded-full transition-colors ${
-                    user.alertas[alert.key] ? "bg-green-500" : "bg-white/10"
+                    (user.alertas as Record<string, boolean> | null)?.[alert.key] ? "bg-green-500" : "bg-white/10"
                   }`}
                 >
                   <span
                     className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${
-                      user.alertas[alert.key] ? "translate-x-5" : "translate-x-0"
+                      (user.alertas as Record<string, boolean> | null)?.[alert.key] ? "translate-x-5" : "translate-x-0"
                     }`}
                   />
                 </button>

@@ -3,24 +3,22 @@
 import { useState, useRef } from "react";
 import { Refresh, ChatRoundDots, AltArrowLeft } from "@solar-icons/react";
 import {
-  MOCK_CLIENTS,
-  MOCK_KANBAN_COLUMNS,
-  MOCK_TASKS,
   MOCK_TAGS,
+  type Client,
   type Task,
   type TaskPriority,
   type KanbanColumn,
-} from "@/lib/mock-data";
+} from "@/lib/types";
 import TaskModal from "./task-modal";
 
-const PRIORITY_COLORS: Record<TaskPriority, string> = {
+const PRIORITY_COLORS: Record<string, string> = {
   Urgente: "bg-urgent",
   Alta: "bg-warning",
   Média: "bg-info",
   Baixa: "bg-success",
 };
 
-const PRIORITY_TEXT: Record<TaskPriority, string> = {
+const PRIORITY_TEXT: Record<string, string> = {
   Urgente: "text-urgent",
   Alta: "text-warning",
   Média: "text-info",
@@ -68,7 +66,7 @@ function TaskCard({ task, onClick }: { task: Task; onClick: () => void }) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           {/* Priority dot */}
-          <span className={`w-2 h-2 rounded-full ${PRIORITY_COLORS[task.prioridade]} shrink-0`} />
+          <span className={`w-2 h-2 rounded-full ${PRIORITY_COLORS[task.prioridade] ?? "bg-muted"} shrink-0`} />
           {/* Due date */}
           <span className={`text-[10px] ${isOverdue ? "text-urgent font-medium" : "text-muted-soft"}`}>
             {new Date(task.prazo).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}
@@ -159,22 +157,30 @@ function Column({
 }
 
 /* ── Main Kanban Board ── */
-export default function KanbanBoard({
-  initialClientId,
-  onBack,
-}: {
+interface KanbanBoardProps {
+  clients: Client[];
+  tasks: Task[];
+  columns: KanbanColumn[];
   initialClientId?: string;
   onBack?: () => void;
-}) {
-  const activeClients = MOCK_CLIENTS.filter((c) => c.status === "Ativo" || c.status === "Onboarding");
+}
+
+export default function KanbanBoard({
+  clients,
+  tasks: tasksProp,
+  columns,
+  initialClientId,
+  onBack,
+}: KanbanBoardProps) {
+  const activeClients = clients.filter((c) => c.status === "Ativo" || c.status === "Onboarding");
   const [selectedClientId, setSelectedClientId] = useState(initialClientId || activeClients[0]?.id || "");
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [tasks, setTasks] = useState(MOCK_TASKS);
+  const [tasks, setTasks] = useState(tasksProp);
   const [filterPriority, setFilterPriority] = useState<TaskPriority | "Todas">("Todas");
   const [filterTag, setFilterTag] = useState<string | "Todas">("Todas");
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const clientColumns = MOCK_KANBAN_COLUMNS
+  const clientColumns = columns
     .filter((col) => col.clientId === selectedClientId)
     .sort((a, b) => a.ordem - b.ordem);
 
@@ -208,7 +214,7 @@ export default function KanbanBoard({
             <h1 className="text-xl sm:text-2xl font-semibold text-gradient tracking-tight">Tarefas</h1>
             <p className="text-muted text-xs sm:text-sm mt-1">
               {tasks.filter((t) => t.clientId === selectedClientId).length} tarefas para{" "}
-              {MOCK_CLIENTS.find((c) => c.id === selectedClientId)?.nome}
+              {clients.find((c) => c.id === selectedClientId)?.nome}
             </p>
           </div>
         </div>
@@ -252,7 +258,7 @@ export default function KanbanBoard({
                   : "text-muted-soft hover:text-muted"
               }`}
             >
-              {p !== "Todas" && <span className={`w-1.5 h-1.5 rounded-full ${PRIORITY_COLORS[p]}`} />}
+              {p !== "Todas" && <span className={`w-1.5 h-1.5 rounded-full ${PRIORITY_COLORS[p] ?? "bg-muted"}`} />}
               {p}
             </button>
           ))}
@@ -286,7 +292,7 @@ export default function KanbanBoard({
 
       {/* Task Modal */}
       {selectedTask && (
-        <TaskModal task={selectedTask} onClose={() => setSelectedTask(null)} />
+        <TaskModal task={selectedTask} clients={clients} onClose={() => setSelectedTask(null)} />
       )}
     </>
   );

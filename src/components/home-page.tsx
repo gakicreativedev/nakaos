@@ -1,28 +1,7 @@
 "use client";
 
-/* ── Mock Data ── */
-const STATS = [
-  { label: "Tarefas Urgentes", value: "3", change: "Requer atenção", accent: true },
-  { label: "Clientes Ativos", value: "24", change: "+3 este mês", accent: false },
-  { label: "Tarefas Pendentes", value: "12", change: "5 vencem hoje", accent: false },
-  { label: "Receita (Mês)", value: "R$ 48.2k", change: "+12.5%", accent: false },
-  { label: "Projetos", value: "8", change: "2 lançando em breve", accent: false },
-];
-
-const RECENT_TASKS = [
-  { id: 1, title: "Revisão de diretrizes da marca", client: "Studio Zen", status: "Em Andamento", priority: "high" as const },
-  { id: 2, title: "Entrega kit redes sociais", client: "Café Origem", status: "Pendente", priority: "medium" as const },
-  { id: 3, title: "Proposta redesign website", client: "TechVida", status: "Concluído", priority: "low" as const },
-  { id: 4, title: "Pacote variações de logo", client: "Floresta Verde", status: "Em Andamento", priority: "high" as const },
-  { id: 5, title: "Layout materiais impressos", client: "Arte Nova", status: "Pendente", priority: "medium" as const },
-];
-
-const RECENT_CLIENTS = [
-  { name: "Studio Zen", status: "Ativo", projects: 3 },
-  { name: "Café Origem", status: "Ativo", projects: 2 },
-  { name: "TechVida", status: "Onboarding", projects: 1 },
-  { name: "Floresta Verde", status: "Ativo", projects: 4 },
-];
+import { useMemo } from "react";
+import type { Client, Task, Movimentacao } from "@/lib/types";
 
 /* ── Status Badge ── */
 function StatusBadge({ status }: { status: string }) {
@@ -59,7 +38,70 @@ const AVATAR_GRADIENTS = [
 ];
 
 /* ── Main Component ── */
-export default function HomePage() {
+interface HomePageProps {
+  clients: Client[];
+  tasks: Task[];
+  movimentacoes: Movimentacao[];
+}
+
+export default function HomePage({ clients, tasks, movimentacoes }: HomePageProps) {
+  const priorityMap: Record<string, "high" | "medium" | "low"> = {
+    Urgente: "high",
+    Alta: "high",
+    "Média": "medium",
+    Baixa: "low",
+  };
+
+  const statusMap: Record<string, string> = {
+    "em-andamento": "Em Andamento",
+    "a-fazer": "Pendente",
+    concluido: "Concluído",
+    revisao: "Em Revisão",
+  };
+
+  const stats = useMemo(() => {
+    const urgentTasks = tasks.filter((t) => t.prioridade === "Urgente" || t.prioridade === "Alta").length;
+    const activeClients = clients.filter((c) => c.status === "Ativo" || c.status === "Onboarding").length;
+    const pendingTasks = tasks.filter((t) => t.colunaId === "a-fazer" || t.colunaId === "em-andamento").length;
+    const today = new Date().toISOString().slice(0, 10);
+    const dueTodayCount = tasks.filter((t) => t.prazo === today).length;
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    const monthRevenue = movimentacoes
+      .filter((m) => m.data.startsWith(currentMonth) && m.categoria === "Receita" && m.status !== "Cancelado")
+      .reduce((sum, m) => sum + m.valor, 0);
+    const revenueStr = monthRevenue >= 1000 ? `R$ ${(monthRevenue / 1000).toFixed(1)}k` : `R$ ${monthRevenue.toLocaleString("pt-BR")}`;
+    const uniqueClients = new Set(tasks.filter((t) => t.clientId).map((t) => t.clientId)).size;
+
+    return [
+      { label: "Tarefas Urgentes", value: String(urgentTasks), change: urgentTasks > 0 ? "Requer atenção" : "Tudo em dia", accent: urgentTasks > 0 },
+      { label: "Clientes Ativos", value: String(activeClients), change: "", accent: false },
+      { label: "Tarefas Pendentes", value: String(pendingTasks), change: dueTodayCount > 0 ? `${dueTodayCount} vencem hoje` : "", accent: false },
+      { label: "Receita (Mês)", value: revenueStr, change: "", accent: false },
+      { label: "Projetos", value: String(uniqueClients), change: "", accent: false },
+    ];
+  }, [clients, tasks, movimentacoes]);
+
+  const recentTasks = useMemo(() => {
+    return tasks.slice(0, 5).map((t) => ({
+      id: t.id,
+      title: t.titulo,
+      client: clients.find((c) => c.id === t.clientId)?.nome || "",
+      status: statusMap[t.colunaId] || t.colunaId,
+      priority: priorityMap[t.prioridade] || ("medium" as const),
+    }));
+  }, [tasks, clients]);
+
+  const recentClients = useMemo(() => {
+    return clients
+      .filter((c) => c.status === "Ativo" || c.status === "Onboarding")
+      .slice(0, 4)
+      .map((c) => ({
+        name: c.nome,
+        status: c.status,
+        projects: tasks.filter((t) => t.clientId === c.id).length,
+      }));
+  }, [clients, tasks]);
+
   return (
     <>
       {/* Header */}
@@ -76,7 +118,7 @@ export default function HomePage() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-3.5">
-        {STATS.map((stat, i) => (
+        {stats.map((stat, i) => (
           <div
             key={i}
             className={`rounded-2xl p-5 border transition-colors cursor-default ${
@@ -126,7 +168,7 @@ export default function HomePage() {
             </span>
           </div>
           <div className="flex-1 overflow-auto">
-            {RECENT_TASKS.map((task) => (
+            {recentTasks.map((task) => (
               <div
                 key={task.id}
                 className="flex items-center px-5 py-3.5 border-b border-[#1a1a1a] gap-3 hover:bg-white/[0.02] transition-colors cursor-pointer"
@@ -155,7 +197,7 @@ export default function HomePage() {
             </span>
           </div>
           <div className="flex-1 overflow-auto">
-            {RECENT_CLIENTS.map((client, i) => (
+            {recentClients.map((client, i) => (
               <div
                 key={i}
                 className="flex items-center px-5 py-3.5 border-b border-[#1a1a1a] gap-3 hover:bg-white/[0.02] transition-colors cursor-pointer"

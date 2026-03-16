@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Magnifier, AltArrowRight, CloseCircle } from "@solar-icons/react";
 
-import { MOCK_CLIENTS, type ClientStatus } from "@/lib/mock-data";
+import type { Client, ClientStatus } from "@/lib/types";
 
 const STATUS_OPTIONS: { label: string; value: ClientStatus | "Todos" }[] = [
   { label: "Todos", value: "Todos" },
@@ -14,14 +14,14 @@ const STATUS_OPTIONS: { label: string; value: ClientStatus | "Todos" }[] = [
   { label: "Encerrado", value: "Encerrado" },
 ];
 
-function StatusBadge({ status }: { status: ClientStatus }) {
-  const colors: Record<ClientStatus, { bg: string; text: string; border: string }> = {
+function StatusBadge({ status }: { status: string }) {
+  const colors: Record<string, { bg: string; text: string; border: string }> = {
     Ativo: { bg: "rgba(255,255,255,0.15)", text: "#ffffff", border: "rgba(255,255,255,0.2)" },
     Onboarding: { bg: "rgba(168,85,247,0.25)", text: "#e9d5ff", border: "rgba(168,85,247,0.3)" },
     Pausado: { bg: "rgba(234,179,8,0.25)", text: "#fef08a", border: "rgba(234,179,8,0.3)" },
     Encerrado: { bg: "rgba(107,114,128,0.25)", text: "#d1d5db", border: "rgba(107,114,128,0.3)" },
   };
-  const c = colors[status];
+  const c = colors[status] ?? { bg: "rgba(107,114,128,0.25)", text: "#d1d5db", border: "rgba(107,114,128,0.3)" };
   return (
     <span
       className="px-2.5 py-1 rounded-xl text-[10px] font-semibold tracking-wide backdrop-blur-sm"
@@ -32,6 +32,25 @@ function StatusBadge({ status }: { status: ClientStatus }) {
   );
 }
 
+const STATUS_GRADIENTS: Record<string, { card: string; line: string }> = {
+  Ativo: {
+    card: "from-[#2d6b1e] via-[#4a9e2f] to-[#7bcf45]",
+    line: "from-[#4a9e2f] via-[#7bcf45] to-[#4a9e2f]",
+  },
+  Onboarding: {
+    card: "from-[#5b21b6] via-[#7c3aed] to-[#a78bfa]",
+    line: "from-[#7c3aed] via-[#a78bfa] to-[#7c3aed]",
+  },
+  Pausado: {
+    card: "from-[#92400e] via-[#d97706] to-[#fbbf24]",
+    line: "from-[#d97706] via-[#fbbf24] to-[#d97706]",
+  },
+  Encerrado: {
+    card: "from-[#374151] via-[#6b7280] to-[#9ca3af]",
+    line: "from-[#6b7280] via-[#9ca3af] to-[#6b7280]",
+  },
+};
+
 const AVATAR_COLORS = [
   "from-[#2a2a3a] to-[#1a1a1a]",
   "from-[#2a3a2a] to-[#1a1a1a]",
@@ -40,12 +59,16 @@ const AVATAR_COLORS = [
   "from-[#3a2a3a] to-[#1a1a1a]",
 ];
 
-export default function ClientesList() {
+interface ClientesListProps {
+  clients: Client[];
+}
+
+export default function ClientesList({ clients }: ClientesListProps) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<ClientStatus | "Todos">("Todos");
   const [showNewModal, setShowNewModal] = useState(false);
 
-  const filtered = MOCK_CLIENTS.filter((c) => {
+  const filtered = clients.filter((c) => {
     const matchesSearch = c.nome.toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === "Todos" || c.status === statusFilter;
     return matchesSearch && matchesStatus;
@@ -58,7 +81,7 @@ export default function ClientesList() {
         <div>
           <h1 className="text-2xl font-semibold text-gradient tracking-tight">Clientes</h1>
           <p className="text-muted text-sm mt-1">
-            {MOCK_CLIENTS.filter((c) => c.status === "Ativo").length} ativos de {MOCK_CLIENTS.length} total
+            {clients.filter((c) => c.status === "Ativo").length} ativos de {clients.length} total
           </p>
         </div>
         <button
@@ -117,8 +140,8 @@ export default function ClientesList() {
                 href={`/clientes/${client.id}`}
                 className="group rounded-3xl overflow-hidden border border-white/[0.06] hover:border-white/[0.12] transition-all hover:shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
               >
-                {/* Top section - green gradient with contract value */}
-                <div className="relative h-[110px] bg-gradient-to-br from-[#2d6b1e] via-[#4a9e2f] to-[#7bcf45] p-5 flex flex-col justify-between overflow-hidden">
+                {/* Top section - status-based gradient with contract value */}
+                <div className={`relative h-[110px] bg-gradient-to-br ${(STATUS_GRADIENTS[client.status] ?? STATUS_GRADIENTS.Ativo).card} p-5 flex flex-col justify-between overflow-hidden`}>
                   {/* Shine effect */}
                   <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-60" />
                   <div className="absolute top-0 left-0 w-[60%] h-full bg-gradient-to-r from-white/10 to-transparent rounded-br-[60%]" />
@@ -141,7 +164,7 @@ export default function ClientesList() {
                 </div>
 
                 {/* Accent line between sections */}
-                <div className="h-[2px] bg-gradient-to-r from-[#4a9e2f] via-[#7bcf45] to-[#4a9e2f]" />
+                <div className={`h-[2px] bg-gradient-to-r ${(STATUS_GRADIENTS[client.status] ?? STATUS_GRADIENTS.Ativo).line}`} />
 
                 {/* Bottom section - dark with client info */}
                 <div className="bg-[#111111] p-5">

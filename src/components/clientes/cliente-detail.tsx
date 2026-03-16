@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { AltArrowLeft } from "@solar-icons/react";
-import { MOCK_CLIENTS, MOCK_BRAND_HUBS, MOCK_TASKS, MOCK_MOVIMENTACOES, type Client, type ClientStatus, type BrandHubData, type BrandColor, type Task, type TaskPriority, type Movimentacao } from "@/lib/mock-data";
+import type { Client, ClientStatus, BrandHubData, BrandColor, Task, TaskPriority, Movimentacao } from "@/lib/types";
 
 const TABS = [
   { id: "geral", label: "Dados Gerais" },
@@ -15,14 +15,14 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]["id"];
 
-function StatusBadge({ status }: { status: ClientStatus }) {
-  const colors: Record<ClientStatus, { bg: string; text: string }> = {
+function StatusBadge({ status }: { status: string }) {
+  const colors: Record<string, { bg: string; text: string }> = {
     Ativo: { bg: "rgba(34,197,94,0.15)", text: "#4ade80" },
     Onboarding: { bg: "rgba(168,85,247,0.15)", text: "#c084fc" },
     Pausado: { bg: "rgba(234,179,8,0.15)", text: "#facc15" },
     Encerrado: { bg: "rgba(107,114,128,0.15)", text: "#9ca3af" },
   };
-  const c = colors[status];
+  const c = colors[status] ?? { bg: "rgba(107,114,128,0.15)", text: "#9ca3af" };
   return (
     <span
       className="px-3 py-1 rounded-lg text-xs font-medium tracking-wide"
@@ -33,20 +33,18 @@ function StatusBadge({ status }: { status: ClientStatus }) {
   );
 }
 
-export default function ClienteDetail({ clientId }: { clientId: string }) {
-  const [activeTab, setActiveTab] = useState<TabId>("geral");
-  const client = MOCK_CLIENTS.find((c) => c.id === clientId);
+interface ClienteDetailProps {
+  client: Client;
+  brandHub: BrandHubData | null;
+  tasks: Task[];
+  movimentacoes: Movimentacao[];
+}
 
-  if (!client) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 text-muted-soft">
-        <p className="text-lg">Cliente não encontrado</p>
-        <Link href="/clientes" className="text-sm mt-2 text-info hover:underline">
-          Voltar para listagem
-        </Link>
-      </div>
-    );
-  }
+export default function ClienteDetail({ client, brandHub, tasks, movimentacoes }: ClienteDetailProps) {
+  const [activeTab, setActiveTab] = useState<TabId>("geral");
+
+  const clientTasks = tasks.filter((t) => t.clientId === client.id);
+  const clientMovs = movimentacoes.filter((m) => m.clientId === client.id);
 
   return (
     <>
@@ -93,9 +91,9 @@ export default function ClienteDetail({ clientId }: { clientId: string }) {
       <div className="flex-1 min-h-0">
         {activeTab === "geral" && <TabGeral client={client} />}
         {activeTab === "contrato" && <TabContrato client={client} />}
-        {activeTab === "brand-hub" && <TabBrandHub clientId={clientId} />}
-        {activeTab === "tarefas" && <TabTarefas clientId={clientId} />}
-        {activeTab === "financeiro" && <TabFinanceiro clientId={clientId} />}
+        {activeTab === "brand-hub" && <TabBrandHub clientId={client.id} brandHub={brandHub} />}
+        {activeTab === "tarefas" && <TabTarefas clientId={client.id} tasks={clientTasks} />}
+        {activeTab === "financeiro" && <TabFinanceiro clientId={client.id} movimentacoes={clientMovs} />}
       </div>
     </>
   );
@@ -132,10 +130,10 @@ function TabGeral({ client }: { client: Client }) {
       <div className="bg-gradient-to-b from-surface to-[#141414] rounded-2xl border border-border p-5">
         <h3 className="text-sm font-medium text-gradient mb-4">Redes Sociais</h3>
         <div className="grid grid-cols-2 gap-4">
-          <InfoField label="Instagram" value={client.redesSociais.instagram || "—"} />
-          <InfoField label="Facebook" value={client.redesSociais.facebook || "—"} />
-          <InfoField label="LinkedIn" value={client.redesSociais.linkedin || "—"} />
-          <InfoField label="TikTok" value={client.redesSociais.tiktok || "—"} />
+          <InfoField label="Instagram" value={client.redesSociais?.instagram || "—"} />
+          <InfoField label="Facebook" value={client.redesSociais?.facebook || "—"} />
+          <InfoField label="LinkedIn" value={client.redesSociais?.linkedin || "—"} />
+          <InfoField label="TikTok" value={client.redesSociais?.tiktok || "—"} />
         </div>
       </div>
 
@@ -195,8 +193,7 @@ function TabContrato({ client }: { client: Client }) {
 }
 
 /* ── Tab: Brand Hub (embedded) ── */
-function TabBrandHub({ clientId }: { clientId: string }) {
-  const brandHub = MOCK_BRAND_HUBS.find((bh) => bh.clientId === clientId);
+function TabBrandHub({ clientId, brandHub }: { clientId: string; brandHub: BrandHubData | null }) {
 
   if (!brandHub) {
     return (
@@ -270,16 +267,14 @@ function TabBrandHub({ clientId }: { clientId: string }) {
 }
 
 /* ── Tab: Tarefas (embedded) ── */
-const PRIORITY_DOT: Record<TaskPriority, string> = {
+const PRIORITY_DOT: Record<string, string> = {
   Urgente: "bg-urgent",
   Alta: "bg-warning",
   Média: "bg-info",
   Baixa: "bg-success",
 };
 
-function TabTarefas({ clientId }: { clientId: string }) {
-  const clientTasks = MOCK_TASKS.filter((t) => t.clientId === clientId);
-
+function TabTarefas({ clientId, tasks: clientTasks }: { clientId: string; tasks: Task[] }) {
   if (clientTasks.length === 0) {
     return (
       <div className="bg-gradient-to-b from-surface to-[#141414] rounded-2xl border border-dashed border-border p-8 flex flex-col items-center text-center min-h-[200px]">
@@ -308,7 +303,7 @@ function TabTarefas({ clientId }: { clientId: string }) {
           const isOverdue = new Date(task.prazo) < new Date();
           return (
             <div key={task.id} className="flex items-center px-5 py-3.5 border-b border-[#1a1a1a] last:border-b-0 gap-3 hover:bg-white/[0.02] transition-colors">
-              <span className={`w-2 h-2 rounded-full ${PRIORITY_DOT[task.prioridade]} shrink-0`} />
+              <span className={`w-2 h-2 rounded-full ${PRIORITY_DOT[task.prioridade] ?? "bg-muted"} shrink-0`} />
               <div className="flex-1 min-w-0">
                 <p className="text-[13px] font-medium text-[#c8c8c8] truncate">{task.titulo}</p>
                 <p className="text-[10px] text-muted-soft mt-0.5">{task.responsavel} · {task.tags.slice(0, 2).join(", ")}</p>
@@ -325,8 +320,7 @@ function TabTarefas({ clientId }: { clientId: string }) {
 }
 
 /* ── Tab: Financeiro (embedded) ── */
-function TabFinanceiro({ clientId }: { clientId: string }) {
-  const movs = MOCK_MOVIMENTACOES.filter((m) => m.clientId === clientId);
+function TabFinanceiro({ clientId, movimentacoes: movs }: { clientId: string; movimentacoes: Movimentacao[] }) {
   const totalReceita = movs.filter((m) => m.categoria === "Receita").reduce((s, m) => s + m.valor, 0);
   const totalDespesa = movs.filter((m) => m.categoria !== "Receita").reduce((s, m) => s + m.valor, 0);
 

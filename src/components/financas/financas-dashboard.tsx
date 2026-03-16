@@ -2,15 +2,9 @@
 
 import { useState, useMemo } from "react";
 import { CloseCircle, ArrowUp, ArrowDown } from "@solar-icons/react";
-import {
-  MOCK_MOVIMENTACOES,
-  MOCK_CLIENTS,
-  type Movimentacao,
-  type MovimentacaoCategoria,
-  type MovimentacaoStatus,
-} from "@/lib/mock-data";
+import type { Movimentacao, MovimentacaoCategoria, MovimentacaoStatus, Client } from "@/lib/types";
 
-const CATEGORIA_COLORS: Record<MovimentacaoCategoria, { bg: string; text: string }> = {
+const CATEGORIA_COLORS: Record<string, { bg: string; text: string }> = {
   Receita: { bg: "rgba(34,197,94,0.15)", text: "#4ade80" },
   "Despesa Operacional": { bg: "rgba(239,68,68,0.15)", text: "#ef4444" },
   Fornecedor: { bg: "rgba(245,158,11,0.15)", text: "#f59e0b" },
@@ -18,7 +12,7 @@ const CATEGORIA_COLORS: Record<MovimentacaoCategoria, { bg: string; text: string
   Investimento: { bg: "rgba(59,130,246,0.15)", text: "#60a5fa" },
 };
 
-const STATUS_COLORS: Record<MovimentacaoStatus, { bg: string; text: string }> = {
+const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   Pago: { bg: "rgba(34,197,94,0.15)", text: "#4ade80" },
   Pendente: { bg: "rgba(234,179,8,0.15)", text: "#facc15" },
   Agendado: { bg: "rgba(59,130,246,0.15)", text: "#60a5fa" },
@@ -26,8 +20,8 @@ const STATUS_COLORS: Record<MovimentacaoStatus, { bg: string; text: string }> = 
   Cancelado: { bg: "rgba(107,114,128,0.15)", text: "#9ca3af" },
 };
 
-function CategoriaBadge({ categoria }: { categoria: MovimentacaoCategoria }) {
-  const c = CATEGORIA_COLORS[categoria];
+function CategoriaBadge({ categoria }: { categoria: string }) {
+  const c = CATEGORIA_COLORS[categoria] ?? { bg: "rgba(107,114,128,0.15)", text: "#9ca3af" };
   return (
     <span className="px-2.5 py-1 rounded-lg text-[10px] font-medium" style={{ background: c.bg, color: c.text }}>
       {categoria}
@@ -35,8 +29,8 @@ function CategoriaBadge({ categoria }: { categoria: MovimentacaoCategoria }) {
   );
 }
 
-function StatusBadge({ status }: { status: MovimentacaoStatus }) {
-  const c = STATUS_COLORS[status];
+function StatusBadge({ status }: { status: string }) {
+  const c = STATUS_COLORS[status] ?? { bg: "rgba(107,114,128,0.15)", text: "#9ca3af" };
   return (
     <span className="px-2.5 py-1 rounded-lg text-[10px] font-medium" style={{ background: c.bg, color: c.text }}>
       {status}
@@ -71,7 +65,7 @@ function BarChart({ data }: { data: { label: string; entradas: number; saidas: n
 }
 
 /* ── New Movimentação Modal ── */
-function NewMovimentacaoModal({ onClose }: { onClose: () => void }) {
+function NewMovimentacaoModal({ onClose, clients }: { onClose: () => void; clients: Client[] }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
@@ -116,7 +110,7 @@ function NewMovimentacaoModal({ onClose }: { onClose: () => void }) {
             <label className="text-xs font-medium text-muted block mb-1.5">Cliente vinculado</label>
             <select className="w-full px-3.5 py-2.5 rounded-xl bg-[#141414] border border-border text-sm text-foreground focus:outline-none focus:border-border-hover transition-colors">
               <option value="">Nenhum (interno)</option>
-              {MOCK_CLIENTS.map((c) => (
+              {clients.map((c) => (
                 <option key={c.id} value={c.id}>{c.nome}</option>
               ))}
             </select>
@@ -153,13 +147,18 @@ function NewMovimentacaoModal({ onClose }: { onClose: () => void }) {
 }
 
 /* ── Main Dashboard ── */
-export default function FinancasDashboard() {
+interface FinancasDashboardProps {
+  movimentacoes: Movimentacao[];
+  clients: Client[];
+}
+
+export default function FinancasDashboard({ movimentacoes, clients }: FinancasDashboardProps) {
   const [filterCategoria, setFilterCategoria] = useState<MovimentacaoCategoria | "Todas">("Todas");
   const [filterStatus, setFilterStatus] = useState<MovimentacaoStatus | "Todos">("Todos");
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
 
-  const currentMonth = MOCK_MOVIMENTACOES.filter((m) => m.data.startsWith("2026-03"));
+  const currentMonth = movimentacoes.filter((m) => m.data.startsWith("2026-03"));
 
   const totalEntradas = currentMonth
     .filter((m) => m.categoria === "Receita" && m.status !== "Cancelado")
@@ -173,7 +172,7 @@ export default function FinancasDashboard() {
 
   // Per-client revenue
   const clientRevenue = useMemo(() => {
-    return MOCK_CLIENTS
+    return clients
       .filter((c) => c.status === "Ativo" || c.status === "Onboarding")
       .map((c) => ({
         nome: c.nome,
@@ -182,7 +181,7 @@ export default function FinancasDashboard() {
           .reduce((sum, m) => sum + m.valor, 0),
       }))
       .filter((c) => c.valor > 0);
-  }, []);
+  }, [clients, currentMonth]);
 
   // Chart data
   const chartData = [
@@ -324,7 +323,7 @@ export default function FinancasDashboard() {
           ) : (
             filtered.map((mov) => {
               const isReceita = mov.categoria === "Receita";
-              const client = MOCK_CLIENTS.find((c) => c.id === mov.clientId);
+              const client = clients.find((c) => c.id === mov.clientId);
               return (
                 <div key={mov.id} className="flex items-center px-3 sm:px-5 py-3.5 border-b border-[#1a1a1a] last:border-b-0 gap-2 sm:gap-3 hover:bg-white/[0.02] transition-colors">
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isReceita ? "bg-success/10" : "bg-urgent/10"}`}>
@@ -351,7 +350,7 @@ export default function FinancasDashboard() {
         </div>
       </div>
 
-      {showModal && <NewMovimentacaoModal onClose={() => setShowModal(false)} />}
+      {showModal && <NewMovimentacaoModal onClose={() => setShowModal(false)} clients={clients} />}
     </>
   );
 }
