@@ -39,6 +39,12 @@ export async function loginAction(_prev: unknown, formData: FormData) {
     return { error: "Conta desativada. Contate o administrador." };
   }
 
+  // Update last access date
+  await db
+    .update(usuarios)
+    .set({ ultimoAcesso: new Date().toISOString().slice(0, 10) })
+    .where(eq(usuarios.id, user.id));
+
   await createSession({
     userId: user.id,
     nome: user.nome,
@@ -94,7 +100,7 @@ export async function createUserAction(formData: FormData) {
     role: role as "Admin" | "Editor" | "Visualizador",
     ativo: true,
     criadoEm: now,
-    ultimoAcesso: "",
+    ultimoAcesso: now,
     alertas: {
       tarefasAtrasadas: true,
       renovacaoContratos: true,

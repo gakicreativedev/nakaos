@@ -3,114 +3,177 @@
 import { db } from "@/db";
 import { eq } from "drizzle-orm";
 import * as schema from "@/db/schema";
-import type { Client, BrandHubData, Task, Movimentacao, Usuario } from "./types";
 
 /* ── Clients ── */
-export async function getClients(): Promise<Client[]> {
-  const rows = await db.select().from(schema.clients);
-  return rows as unknown as Client[];
+export async function getClients() {
+  try {
+    return await db.select().from(schema.clients);
+  } catch (error) {
+    console.error("[getClients] Database error:", error);
+    return [];
+  }
 }
 
-export async function getClientById(id: string): Promise<Client | null> {
-  const [client] = await db.select().from(schema.clients).where(eq(schema.clients.id, id)).limit(1);
-  return (client as unknown as Client) ?? null;
+export async function getClientById(id: string) {
+  try {
+    const [client] = await db.select().from(schema.clients).where(eq(schema.clients.id, id)).limit(1);
+    return client ?? null;
+  } catch (error) {
+    console.error("[getClientById] Database error:", error);
+    return null;
+  }
 }
 
 /* ── Brand Hub ── */
 export async function getBrandHub(clientId: string) {
-  const [hub] = await db.select().from(schema.brandHubs).where(eq(schema.brandHubs.clientId, clientId)).limit(1);
-  if (!hub) return null;
+  try {
+    const [hub] = await db.select().from(schema.brandHubs).where(eq(schema.brandHubs.clientId, clientId)).limit(1);
+    if (!hub) return null;
 
-  const logos = await db.select().from(schema.brandLogos).where(eq(schema.brandLogos.clientId, clientId));
-  const cores = await db.select().from(schema.brandColors).where(eq(schema.brandColors.clientId, clientId));
-  const fontes = await db.select().from(schema.brandFonts).where(eq(schema.brandFonts.clientId, clientId));
-  const historico = await db.select().from(schema.brandHistorico).where(eq(schema.brandHistorico.clientId, clientId));
+    const logos = await db.select().from(schema.brandLogos).where(eq(schema.brandLogos.clientId, clientId));
+    const cores = await db.select().from(schema.brandColors).where(eq(schema.brandColors.clientId, clientId));
+    const fontes = await db.select().from(schema.brandFonts).where(eq(schema.brandFonts.clientId, clientId));
+    const historico = await db.select().from(schema.brandHistorico).where(eq(schema.brandHistorico.clientId, clientId));
 
-  return { ...hub, logos, cores, fontes, historico };
+    return { ...hub, logos, cores, fontes, historico };
+  } catch (error) {
+    console.error("[getBrandHub] Database error:", error);
+    return null;
+  }
 }
 
 export async function getAllBrandHubs() {
-  const hubs = await db.select().from(schema.brandHubs);
-  const results = [];
-  for (const hub of hubs) {
-    const logos = await db.select().from(schema.brandLogos).where(eq(schema.brandLogos.clientId, hub.clientId));
-    const cores = await db.select().from(schema.brandColors).where(eq(schema.brandColors.clientId, hub.clientId));
-    const fontes = await db.select().from(schema.brandFonts).where(eq(schema.brandFonts.clientId, hub.clientId));
-    const historico = await db.select().from(schema.brandHistorico).where(eq(schema.brandHistorico.clientId, hub.clientId));
-    results.push({ ...hub, logos, cores, fontes, historico });
+  try {
+    const hubs = await db.select().from(schema.brandHubs);
+    const results = [];
+    for (const hub of hubs) {
+      const logos = await db.select().from(schema.brandLogos).where(eq(schema.brandLogos.clientId, hub.clientId));
+      const cores = await db.select().from(schema.brandColors).where(eq(schema.brandColors.clientId, hub.clientId));
+      const fontes = await db.select().from(schema.brandFonts).where(eq(schema.brandFonts.clientId, hub.clientId));
+      const historico = await db.select().from(schema.brandHistorico).where(eq(schema.brandHistorico.clientId, hub.clientId));
+      results.push({ ...hub, logos, cores, fontes, historico });
+    }
+    return results;
+  } catch (error) {
+    console.error("[getAllBrandHubs] Database error:", error);
+    return [];
   }
-  return results;
 }
 
 /* ── Kanban ── */
 export async function getKanbanColumns(clientId?: string) {
-  if (clientId) {
-    return db.select().from(schema.kanbanColumns).where(eq(schema.kanbanColumns.clientId, clientId));
+  try {
+    if (clientId) {
+      return await db.select().from(schema.kanbanColumns).where(eq(schema.kanbanColumns.clientId, clientId));
+    }
+    return await db.select().from(schema.kanbanColumns);
+  } catch (error) {
+    console.error("[getKanbanColumns] Database error:", error);
+    return [];
   }
-  return db.select().from(schema.kanbanColumns);
 }
 
 export async function getTasks(clientId?: string) {
-  if (clientId) {
-    return db.select().from(schema.tasks).where(eq(schema.tasks.clientId, clientId));
+  try {
+    if (clientId) {
+      return await db.select().from(schema.tasks).where(eq(schema.tasks.clientId, clientId));
+    }
+    return await db.select().from(schema.tasks);
+  } catch (error) {
+    console.error("[getTasks] Database error:", error);
+    return [];
   }
-  return db.select().from(schema.tasks);
 }
 
 export async function getTaskWithDetails(taskId: string) {
-  const [task] = await db.select().from(schema.tasks).where(eq(schema.tasks.id, taskId)).limit(1);
-  if (!task) return null;
+  try {
+    const [task] = await db.select().from(schema.tasks).where(eq(schema.tasks.id, taskId)).limit(1);
+    if (!task) return null;
 
-  const etapas = await db.select().from(schema.taskEtapas).where(eq(schema.taskEtapas.taskId, taskId));
-  const comentarios = await db.select().from(schema.taskComments).where(eq(schema.taskComments.taskId, taskId));
-  const anexos = await db.select().from(schema.taskAnexos).where(eq(schema.taskAnexos.taskId, taskId));
+    const etapas = await db.select().from(schema.taskEtapas).where(eq(schema.taskEtapas.taskId, taskId));
+    const comentarios = await db.select().from(schema.taskComments).where(eq(schema.taskComments.taskId, taskId));
+    const anexos = await db.select().from(schema.taskAnexos).where(eq(schema.taskAnexos.taskId, taskId));
 
-  return { ...task, etapas, comentarios, anexos: anexos.map((a) => a.url) };
+    return { ...task, etapas, comentarios, anexos: anexos.map((a) => a.url) };
+  } catch (error) {
+    console.error("[getTaskWithDetails] Database error:", error);
+    return null;
+  }
 }
 
 export async function getAllTasksWithDetails() {
-  const allTasks = await db.select().from(schema.tasks);
-  const results = [];
-  for (const task of allTasks) {
-    const etapas = await db.select().from(schema.taskEtapas).where(eq(schema.taskEtapas.taskId, task.id));
-    const comentarios = await db.select().from(schema.taskComments).where(eq(schema.taskComments.taskId, task.id));
-    const anexos = await db.select().from(schema.taskAnexos).where(eq(schema.taskAnexos.taskId, task.id));
-    results.push({ ...task, etapas, comentarios, anexos: anexos.map((a) => a.url) });
+  try {
+    const allTasks = await db.select().from(schema.tasks);
+    const results = [];
+    for (const task of allTasks) {
+      const etapas = await db.select().from(schema.taskEtapas).where(eq(schema.taskEtapas.taskId, task.id));
+      const comentarios = await db.select().from(schema.taskComments).where(eq(schema.taskComments.taskId, task.id));
+      const anexos = await db.select().from(schema.taskAnexos).where(eq(schema.taskAnexos.taskId, task.id));
+      results.push({ ...task, etapas, comentarios, anexos: anexos.map((a) => a.url) });
+    }
+    return results;
+  } catch (error) {
+    console.error("[getAllTasksWithDetails] Database error:", error);
+    return [];
   }
-  return results;
 }
 
 /* ── Finanças ── */
 export async function getMovimentacoes() {
-  return db.select().from(schema.movimentacoes);
+  try {
+    return await db.select().from(schema.movimentacoes);
+  } catch (error) {
+    console.error("[getMovimentacoes] Database error:", error);
+    return [];
+  }
 }
 
 export async function getMovimentacoesByClient(clientId: string) {
-  return db.select().from(schema.movimentacoes).where(eq(schema.movimentacoes.clientId, clientId));
+  try {
+    return await db.select().from(schema.movimentacoes).where(eq(schema.movimentacoes.clientId, clientId));
+  } catch (error) {
+    console.error("[getMovimentacoesByClient] Database error:", error);
+    return [];
+  }
 }
 
 /* ── Usuarios ── */
 export async function getUsuarios() {
-  return db.select({
-    id: schema.usuarios.id,
-    nome: schema.usuarios.nome,
-    email: schema.usuarios.email,
-    cargo: schema.usuarios.cargo,
-    role: schema.usuarios.role,
-    avatar: schema.usuarios.avatar,
-    ativo: schema.usuarios.ativo,
-    criadoEm: schema.usuarios.criadoEm,
-    ultimoAcesso: schema.usuarios.ultimoAcesso,
-    alertas: schema.usuarios.alertas,
-  }).from(schema.usuarios);
+  try {
+    return await db.select({
+      id: schema.usuarios.id,
+      nome: schema.usuarios.nome,
+      email: schema.usuarios.email,
+      cargo: schema.usuarios.cargo,
+      role: schema.usuarios.role,
+      avatar: schema.usuarios.avatar,
+      ativo: schema.usuarios.ativo,
+      criadoEm: schema.usuarios.criadoEm,
+      ultimoAcesso: schema.usuarios.ultimoAcesso,
+      alertas: schema.usuarios.alertas,
+    }).from(schema.usuarios);
+  } catch (error) {
+    console.error("[getUsuarios] Database error:", error);
+    return [];
+  }
 }
 
 export async function getUsuarioByEmail(email: string) {
-  const [user] = await db.select().from(schema.usuarios).where(eq(schema.usuarios.email, email)).limit(1);
-  return user ?? null;
+  try {
+    const [user] = await db.select().from(schema.usuarios).where(eq(schema.usuarios.email, email)).limit(1);
+    return user ?? null;
+  } catch (error) {
+    console.error("[getUsuarioByEmail] Database error:", error);
+    return null;
+  }
 }
 
 export async function getUsuarioById(id: string) {
-  const [user] = await db.select().from(schema.usuarios).where(eq(schema.usuarios.id, id)).limit(1);
-  return user ?? null;
+  try {
+    const [user] = await db.select().from(schema.usuarios).where(eq(schema.usuarios.id, id)).limit(1);
+    return user ?? null;
+  } catch (error) {
+    console.error("[getUsuarioById] Database error:", error);
+    return null;
+  }
 }
