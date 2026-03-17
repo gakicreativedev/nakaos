@@ -18,7 +18,7 @@
     "@neondatabase/serverless": "^1.0.2",
     "@solar-icons/react": "^1.1.0",
     "drizzle-orm": "^0.45.1",
-    "next": "^15.2.0",
+    "next": "16.1.7",
     "react": "19.0.0",
     "react-dom": "19.0.0"
   },
@@ -30,7 +30,7 @@
     "dotenv": "^17.3.1",
     "drizzle-kit": "^0.31.9",
     "eslint": "^9",
-    "eslint-config-next": "^15.2.0",
+    "eslint-config-next": "16.1.7",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "^5"
