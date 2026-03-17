@@ -1,7 +1,7 @@
-import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
+import { pgTable, text, integer, doublePrecision, boolean, jsonb } from "drizzle-orm/pg-core";
 
 /* ── Clientes ── */
-export const clients = sqliteTable("clients", {
+export const clients = pgTable("clients", {
   id: text("id").primaryKey(),
   nome: text("nome").notNull(),
   logo: text("logo"),
@@ -10,15 +10,15 @@ export const clients = sqliteTable("clients", {
   telefone: text("telefone").notNull(),
   email: text("email").notNull(),
   endereco: text("endereco").notNull(),
-  redesSociais: text("redes_sociais", { mode: "json" }).$type<{
+  redesSociais: jsonb("redes_sociais").$type<{
     instagram?: string;
     facebook?: string;
     linkedin?: string;
     tiktok?: string;
   }>(),
-  status: text("status", { enum: ["Ativo", "Pausado", "Encerrado", "Onboarding"] }).notNull(),
-  servicosContratados: text("servicos_contratados", { mode: "json" }).$type<string[]>().notNull(),
-  valorMensal: real("valor_mensal").notNull(),
+  status: text("status").notNull(), // Ativo | Pausado | Encerrado | Onboarding
+  servicosContratados: jsonb("servicos_contratados").$type<string[]>().notNull(),
+  valorMensal: doublePrecision("valor_mensal").notNull(),
   dataInicio: text("data_inicio").notNull(),
   dataRenovacao: text("data_renovacao").notNull(),
   observacoes: text("observacoes").notNull().default(""),
@@ -26,17 +26,15 @@ export const clients = sqliteTable("clients", {
 });
 
 /* ── Brand Hub ── */
-export const brandLogos = sqliteTable("brand_logos", {
+export const brandLogos = pgTable("brand_logos", {
   id: text("id").primaryKey(),
   clientId: text("client_id").notNull().references(() => clients.id, { onDelete: "cascade" }),
-  categoria: text("categoria", {
-    enum: ["Principal", "Monocromática", "Negativa", "Ícone", "Horizontal", "Vertical"],
-  }).notNull(),
+  categoria: text("categoria").notNull(), // Principal | Monocromática | Negativa | Ícone | Horizontal | Vertical
   url: text("url").notNull().default(""),
   linkExterno: text("link_externo"),
 });
 
-export const brandColors = sqliteTable("brand_colors", {
+export const brandColors = pgTable("brand_colors", {
   id: text("id").primaryKey(),
   clientId: text("client_id").notNull().references(() => clients.id, { onDelete: "cascade" }),
   nome: text("nome").notNull(),
@@ -45,7 +43,7 @@ export const brandColors = sqliteTable("brand_colors", {
   cmyk: text("cmyk").notNull(),
 });
 
-export const brandFonts = sqliteTable("brand_fonts", {
+export const brandFonts = pgTable("brand_fonts", {
   id: text("id").primaryKey(),
   clientId: text("client_id").notNull().references(() => clients.id, { onDelete: "cascade" }),
   nome: text("nome").notNull(),
@@ -53,7 +51,7 @@ export const brandFonts = sqliteTable("brand_fonts", {
   downloadUrl: text("download_url").notNull(),
 });
 
-export const brandHubs = sqliteTable("brand_hubs", {
+export const brandHubs = pgTable("brand_hubs", {
   clientId: text("client_id").primaryKey().references(() => clients.id, { onDelete: "cascade" }),
   nicho: text("nicho").notNull().default(""),
   publicoAlvo: text("publico_alvo").notNull().default(""),
@@ -64,7 +62,7 @@ export const brandHubs = sqliteTable("brand_hubs", {
   ultimaAtualizacao: text("ultima_atualizacao").notNull(),
 });
 
-export const brandHistorico = sqliteTable("brand_historico", {
+export const brandHistorico = pgTable("brand_historico", {
   id: text("id").primaryKey(),
   clientId: text("client_id").notNull().references(() => clients.id, { onDelete: "cascade" }),
   data: text("data").notNull(),
@@ -73,7 +71,7 @@ export const brandHistorico = sqliteTable("brand_historico", {
 });
 
 /* ── Kanban Columns ── */
-export const kanbanColumns = sqliteTable("kanban_columns", {
+export const kanbanColumns = pgTable("kanban_columns", {
   id: text("id").primaryKey(),
   titulo: text("titulo").notNull(),
   clientId: text("client_id").notNull().references(() => clients.id, { onDelete: "cascade" }),
@@ -81,31 +79,31 @@ export const kanbanColumns = sqliteTable("kanban_columns", {
 });
 
 /* ── Tasks ── */
-export const tasks = sqliteTable("tasks", {
+export const tasks = pgTable("tasks", {
   id: text("id").primaryKey(),
   titulo: text("titulo").notNull(),
   descricao: text("descricao").notNull().default(""),
   responsavel: text("responsavel").notNull(),
   prazo: text("prazo").notNull(),
-  prioridade: text("prioridade", { enum: ["Urgente", "Alta", "Média", "Baixa"] }).notNull(),
-  tags: text("tags", { mode: "json" }).$type<string[]>().notNull(),
+  prioridade: text("prioridade").notNull(), // Urgente | Alta | Média | Baixa
+  tags: jsonb("tags").$type<string[]>().notNull(),
   clientId: text("client_id").references(() => clients.id, { onDelete: "set null" }),
   colunaId: text("coluna_id").notNull().references(() => kanbanColumns.id, { onDelete: "cascade" }),
-  recorrente: integer("recorrente", { mode: "boolean" }).notNull().default(false),
+  recorrente: boolean("recorrente").notNull().default(false),
   frequencia: text("frequencia"),
   criadoEm: text("criado_em").notNull(),
 });
 
-export const taskEtapas = sqliteTable("task_etapas", {
+export const taskEtapas = pgTable("task_etapas", {
   id: text("id").primaryKey(),
   taskId: text("task_id").notNull().references(() => tasks.id, { onDelete: "cascade" }),
   titulo: text("titulo").notNull(),
   responsavel: text("responsavel").notNull(),
   prazo: text("prazo").notNull(),
-  concluida: integer("concluida", { mode: "boolean" }).notNull().default(false),
+  concluida: boolean("concluida").notNull().default(false),
 });
 
-export const taskComments = sqliteTable("task_comments", {
+export const taskComments = pgTable("task_comments", {
   id: text("id").primaryKey(),
   taskId: text("task_id").notNull().references(() => tasks.id, { onDelete: "cascade" }),
   usuario: text("usuario").notNull(),
@@ -113,41 +111,37 @@ export const taskComments = sqliteTable("task_comments", {
   data: text("data").notNull(),
 });
 
-export const taskAnexos = sqliteTable("task_anexos", {
+export const taskAnexos = pgTable("task_anexos", {
   id: text("id").primaryKey(),
   taskId: text("task_id").notNull().references(() => tasks.id, { onDelete: "cascade" }),
   url: text("url").notNull(),
 });
 
 /* ── Finanças (Movimentações) ── */
-export const movimentacoes = sqliteTable("movimentacoes", {
+export const movimentacoes = pgTable("movimentacoes", {
   id: text("id").primaryKey(),
-  valor: real("valor").notNull(),
-  categoria: text("categoria", {
-    enum: ["Receita", "Despesa Operacional", "Fornecedor", "Pró-labore", "Investimento"],
-  }).notNull(),
+  valor: doublePrecision("valor").notNull(),
+  categoria: text("categoria").notNull(), // Receita | Despesa Operacional | Fornecedor | Pró-labore | Investimento
   data: text("data").notNull(),
   descricao: text("descricao").notNull(),
   clientId: text("client_id").references(() => clients.id, { onDelete: "set null" }),
-  status: text("status", {
-    enum: ["Agendado", "Pago", "Pendente", "Atrasado", "Cancelado"],
-  }).notNull(),
+  status: text("status").notNull(), // Agendado | Pago | Pendente | Atrasado | Cancelado
   criadoEm: text("criado_em").notNull(),
 });
 
 /* ── Configurações (Usuários) ── */
-export const usuarios = sqliteTable("usuarios", {
+export const usuarios = pgTable("usuarios", {
   id: text("id").primaryKey(),
+  authUserId: text("auth_user_id"), // Link to Neon Auth user
   nome: text("nome").notNull(),
   email: text("email").notNull().unique(),
-  senhaHash: text("senha_hash").notNull(),
   cargo: text("cargo").notNull(),
-  role: text("role", { enum: ["Admin", "Editor", "Visualizador"] }).notNull(),
+  role: text("role").notNull(), // Admin | Editor | Visualizador
   avatar: text("avatar"),
-  ativo: integer("ativo", { mode: "boolean" }).notNull().default(true),
+  ativo: boolean("ativo").notNull().default(true),
   criadoEm: text("criado_em").notNull(),
   ultimoAcesso: text("ultimo_acesso").notNull(),
-  alertas: text("alertas", { mode: "json" }).$type<{
+  alertas: jsonb("alertas").$type<{
     tarefasAtrasadas: boolean;
     renovacaoContratos: boolean;
     pagamentosPendentes: boolean;

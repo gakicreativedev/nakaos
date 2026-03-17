@@ -3,22 +3,18 @@
  *
  * Run with:  npx tsx src/db/seed.ts
  *
- * Requires TURSO_DATABASE_URL (and optionally TURSO_AUTH_TOKEN) in .env.local
+ * Requires DATABASE_URL in .env.local
  */
 
 import { config } from "dotenv";
 config({ path: ".env.local" });
-import { hash } from "bcryptjs";
-import { drizzle } from "drizzle-orm/libsql";
-import { createClient } from "@libsql/client";
+
+import { neon } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-http";
 import * as schema from "./schema";
 
-const client = createClient({
-  url: process.env.TURSO_DATABASE_URL!,
-  authToken: process.env.TURSO_AUTH_TOKEN,
-});
-
-const db = drizzle(client, { schema });
+const sql = neon(process.env.DATABASE_URL!);
+const db = drizzle(sql, { schema });
 
 async function seed() {
   console.log("🧹 Cleaning database...");
@@ -41,12 +37,13 @@ async function seed() {
   console.log("  ✓ All tables cleared");
 
   /* ── Admin user ── */
-  const senhaHash = await hash("@$H4R3crFt", 10);
+  // No password hash needed — Neon Auth handles authentication.
+  // When Yuri signs up via Neon Auth with this email, ensureUsuario()
+  // will link his auth account to this pre-seeded Admin record.
   await db.insert(schema.usuarios).values({
     id: "u1",
     nome: "Yuri",
     email: "gakicreativegroup@gmail.com",
-    senhaHash,
     cargo: "Sócio / Diretor Criativo",
     role: "Admin",
     ativo: true,

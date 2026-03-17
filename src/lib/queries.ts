@@ -142,6 +142,7 @@ export async function getUsuarios() {
   try {
     return await db.select({
       id: schema.usuarios.id,
+      authUserId: schema.usuarios.authUserId,
       nome: schema.usuarios.nome,
       email: schema.usuarios.email,
       cargo: schema.usuarios.cargo,
@@ -174,6 +175,76 @@ export async function getUsuarioById(id: string) {
     return user ?? null;
   } catch (error) {
     console.error("[getUsuarioById] Database error:", error);
+    return null;
+  }
+}
+
+export async function getUsuarioByAuthId(authUserId: string) {
+  try {
+    const [user] = await db.select().from(schema.usuarios).where(eq(schema.usuarios.authUserId, authUserId)).limit(1);
+    return user ?? null;
+  } catch (error) {
+    console.error("[getUsuarioByAuthId] Database error:", error);
+    return null;
+  }
+}
+
+/**
+ * Ensures a usuario record exists for the given Neon Auth user.
+ * On first login, creates with default role "Visualizador".
+ * If the email matches a pre-seeded admin, links by email.
+ */
+export async function ensureUsuario(authUser: { id: string; email: string; displayName: string }) {
+  try {
+    // First check by authUserId
+    let usuario = await getUsuarioByAuthId(authUser.id);
+    if (usuario) {
+      // Update last access
+      await db
+        .update(schema.usuarios)
+        .set({ ultimoAcesso: new Date().toISOString().slice(0, 10) })
+        .where(eq(schema.usuarios.id, usuario.id));
+      return usuario;
+    }
+
+    // Check if there's a pre-seeded user with this email (e.g. admin)
+    const byEmail = await getUsuarioByEmail(authUser.email);
+    if (byEmail) {
+      // Link the existing record to this auth user
+      await db
+        .update(schema.usuarios)
+        .set({
+          authUserId: authUser.id,
+          ultimoAcesso: new Date().toISOString().slice(0, 10),
+        })
+        .where(eq(schema.usuarios.id, byEmail.id));
+      return { ...byEmail, authUserId: authUser.id };
+    }
+
+    // New user — create with default role
+    const now = new Date().toISOString().slice(0, 10);
+    const id = crypto.randomUUID();
+    await db.insert(schema.usuarios).values({
+      id,
+      authUserId: authUser.id,
+      nome: authUser.displayName || authUser.email.split("@")[0],
+      email: authUser.email,
+      cargo: "",
+      role: "Visualizador",
+      ativo: true,
+      criadoEm: now,
+      ultimoAcesso: now,
+      alertas: {
+        tarefasAtrasadas: true,
+        renovacaoContratos: true,
+        pagamentosPendentes: true,
+        novosComentarios: true,
+      },
+    });
+
+    return await getUsuarioById(id);
+  } catch (error) {
+    console.error("[ensureUsuario] Database error:", error);
     return null;
   }
 }

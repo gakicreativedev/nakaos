@@ -12,7 +12,7 @@ export interface Client {
   email: string;
   endereco: string;
   redesSociais: { instagram?: string; facebook?: string; linkedin?: string; tiktok?: string } | null;
-  status: ClientStatus;
+  status: string;
   servicosContratados: string[];
   valorMensal: number;
   dataInicio: string;

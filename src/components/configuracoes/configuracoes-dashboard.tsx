@@ -7,12 +7,10 @@ import {
   UserPlus,
   TrashBinMinimalistic,
   Pen2,
-  Copy,
 } from "@solar-icons/react";
 import type { Usuario, UserRole } from "@/lib/types";
 import { ROLE_PERMISSIONS } from "@/lib/types";
 import {
-  createUserAction,
   updateUserRoleAction,
   toggleUserActiveAction,
 } from "@/lib/actions";
@@ -37,111 +35,6 @@ function roleBadge(role: string) {
   return map[role] ?? "bg-gray-500/20 text-gray-400";
 }
 
-/* ── New User Modal ── */
-function NewUserModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
-  const [pending, startTransition] = useTransition();
-  const [error, setError] = useState("");
-  const [tempPassword, setTempPassword] = useState("");
-  const [copied, setCopied] = useState(false);
-
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setError("");
-    const formData = new FormData(e.currentTarget);
-
-    startTransition(async () => {
-      const result = await createUserAction(formData);
-      if (result.error) {
-        setError(result.error);
-      } else if (result.tempPassword) {
-        setTempPassword(result.tempPassword);
-        onCreated();
-      }
-    });
-  }
-
-  function copyPassword() {
-    navigator.clipboard.writeText(tempPassword);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
-
-  if (tempPassword) {
-    return (
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div className="bg-surface border border-border rounded-2xl w-full max-w-lg p-6">
-          <div className="text-center">
-            <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-4">
-              <UserPlus size={24} className="text-green-400" />
-            </div>
-            <h2 className="text-lg font-semibold text-foreground mb-2">Usuário Criado!</h2>
-            <p className="text-sm text-muted mb-6">Compartilhe a senha temporária com o novo usuário.</p>
-
-            <div className="bg-background border border-border rounded-xl px-4 py-3 flex items-center justify-between gap-3 mb-6">
-              <code className="text-sm font-mono text-foreground tracking-wider">{tempPassword}</code>
-              <button onClick={copyPassword} className="p-2 rounded-lg hover:bg-white/5 text-muted hover:text-foreground transition-colors" title="Copiar">
-                <Copy size={16} />
-              </button>
-            </div>
-            {copied && <p className="text-xs text-green-400 mb-4">Copiado!</p>}
-            <p className="text-xs text-muted/60 mb-6">O usuário poderá trocar a senha após o primeiro login.</p>
-
-            <button onClick={onClose} className="w-full py-2.5 rounded-xl bg-foreground text-background text-sm font-medium hover:opacity-90 transition-opacity">
-              Fechar
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-surface border border-border rounded-2xl w-full max-w-lg p-6" onClick={(e) => e.stopPropagation()}>
-        <h2 className="text-lg font-semibold text-foreground mb-4">Novo Usuário</h2>
-
-        {error && (
-          <div className="mb-4 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm text-muted mb-1">Nome</label>
-            <input name="nome" type="text" required className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted/50 focus:outline-none focus:border-foreground/30" placeholder="Nome completo" />
-          </div>
-          <div>
-            <label className="block text-sm text-muted mb-1">E-mail</label>
-            <input name="email" type="email" required className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted/50 focus:outline-none focus:border-foreground/30" placeholder="email@gaki.com.br" />
-          </div>
-          <div>
-            <label className="block text-sm text-muted mb-1">Cargo</label>
-            <input name="cargo" type="text" required className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted/50 focus:outline-none focus:border-foreground/30" placeholder="Ex: Social Media Manager" />
-          </div>
-          <div>
-            <label className="block text-sm text-muted mb-1">Nível de Permissão</label>
-            <select name="role" defaultValue="Editor" className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-foreground/30">
-              <option value="Admin">Administrador</option>
-              <option value="Editor">Editor</option>
-              <option value="Visualizador">Visualizador</option>
-            </select>
-          </div>
-
-          <div className="flex gap-3 mt-6">
-            <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-border text-sm text-muted hover:bg-white/5 transition-colors">
-              Cancelar
-            </button>
-            <button type="submit" disabled={pending} className="flex-1 py-2.5 rounded-xl bg-foreground text-background text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50">
-              {pending ? "Criando..." : "Criar Usuário"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
 /* ── Main Component ── */
 interface ConfiguracoesDashboardProps {
   usuarios: Usuario[];
@@ -152,8 +45,6 @@ interface ConfiguracoesDashboardProps {
 export default function ConfiguracoesDashboard({ usuarios: initialUsuarios, currentUserRole, currentUserId }: ConfiguracoesDashboardProps) {
   const [activeTab, setActiveTab] = useState<TabId>("usuarios");
   const [usuarios, setUsuarios] = useState<Usuario[]>(initialUsuarios);
-  const [showNewUser, setShowNewUser] = useState(false);
-
   // Sync props when server data changes (after revalidation)
   useEffect(() => {
     setUsuarios(initialUsuarios);
@@ -192,7 +83,6 @@ export default function ConfiguracoesDashboard({ usuarios: initialUsuarios, curr
           usuarios={usuarios}
           isAdmin={isAdmin}
           currentUserId={currentUserId}
-          onNewUser={() => setShowNewUser(true)}
         />
       )}
       {activeTab === "permissoes" && <PermissoesTab />}
@@ -200,16 +90,6 @@ export default function ConfiguracoesDashboard({ usuarios: initialUsuarios, curr
         <AlertasTab usuarios={usuarios} setUsuarios={setUsuarios} />
       )}
       {activeTab === "geral" && <GeralTab />}
-
-      {/* Modals */}
-      {showNewUser && (
-        <NewUserModal
-          onClose={() => setShowNewUser(false)}
-          onCreated={() => {
-            // Data will be refreshed via revalidatePath
-          }}
-        />
-      )}
     </div>
   );
 }
@@ -221,12 +101,10 @@ function UsersTab({
   usuarios,
   isAdmin,
   currentUserId,
-  onNewUser,
 }: {
   usuarios: Usuario[];
   isAdmin: boolean;
   currentUserId: string;
-  onNewUser: () => void;
 }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editRole, setEditRole] = useState<string>("Editor");
@@ -253,20 +131,7 @@ function UsersTab({
 
   return (
     <div className="space-y-4">
-      {/* Add User Button */}
-      {isAdmin && (
-        <div className="flex justify-end">
-          <button
-            onClick={onNewUser}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-foreground text-background text-sm font-medium hover:opacity-90 transition-opacity"
-          >
-            <UserPlus size={16} />
-            Novo Usuário
-          </button>
-        </div>
-      )}
-
-      {/* Users List */}
+      {/* Users List — signup aberto, admin gerencia roles */}
       <div className="space-y-3">
         {usuarios.map((user) => (
           <div
@@ -666,7 +531,7 @@ function GeralTab() {
         <div className="space-y-2 text-xs text-muted">
           <p><span className="text-foreground font-medium">Versão:</span> 1.0.0</p>
           <p><span className="text-foreground font-medium">Build:</span> Next.js 16 + Tailwind CSS v4</p>
-          <p><span className="text-foreground font-medium">Database:</span> Turso (libSQL)</p>
+          <p><span className="text-foreground font-medium">Database:</span> Neon PostgreSQL</p>
           <p><span className="text-foreground font-medium">Deploy:</span> Vercel</p>
           <p className="pt-2 text-muted/40">Desenvolvido para Gaki Marketing Digital</p>
         </div>

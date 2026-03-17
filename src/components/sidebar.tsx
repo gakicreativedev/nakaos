@@ -14,7 +14,7 @@ import {
   ChevronLeftIcon,
   BrandHubIcon,
 } from "./icons";
-import { logoutAction } from "@/lib/actions";
+import { authClient } from "@/lib/auth/client";
 
 const NAV_ITEMS = [
   { id: "home", label: "Home", href: "/", icon: HomeIcon },
@@ -98,18 +98,16 @@ export default function Sidebar() {
         </nav>
 
         {/* Logout */}
-        <form action={logoutAction}>
-          <button
-            type="submit"
-            title={collapsed ? "Sair" : undefined}
-            className={`flex items-center gap-3 rounded-[14px] transition-all duration-200 text-muted-soft hover:text-red-400 hover:bg-red-500/10 w-full ${
-              collapsed ? "justify-center py-3" : "px-4 py-3"
-            }`}
-          >
-            <Logout2 size={20} />
-            {!collapsed && <span className="text-sm font-normal whitespace-nowrap">Sair</span>}
-          </button>
-        </form>
+        <button
+          onClick={() => authClient.signOut()}
+          title={collapsed ? "Sair" : undefined}
+          className={`flex items-center gap-3 rounded-[14px] transition-all duration-200 text-muted-soft hover:text-red-400 hover:bg-red-500/10 w-full ${
+            collapsed ? "justify-center py-3" : "px-4 py-3"
+          }`}
+        >
+          <Logout2 size={20} />
+          {!collapsed && <span className="text-sm font-normal whitespace-nowrap">Sair</span>}
+        </button>
       </aside>
 
       {/* Mobile Bottom Nav */}

@@ -1,13 +1,10 @@
-import { drizzle } from "drizzle-orm/libsql";
-import { createClient } from "@libsql/client";
+import { neon } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-http";
 import * as schema from "./schema";
 
 function getDb() {
-  const client = createClient({
-    url: process.env.TURSO_DATABASE_URL!,
-    authToken: process.env.TURSO_AUTH_TOKEN,
-  });
-  return drizzle(client, { schema });
+  const sql = neon(process.env.DATABASE_URL!);
+  return drizzle(sql, { schema });
 }
 
 // Lazy singleton — only created when first accessed at runtime
