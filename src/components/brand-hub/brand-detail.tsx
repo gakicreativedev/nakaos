@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { AltArrowLeft, AddCircle, Gallery, Import, CloseCircle, TrashBinMinimalistic, Pen } from "@solar-icons/react";
+import { AltArrowLeft, AddCircle, Gallery, Import, CloseCircle, TrashBinMinimalistic, Pen, Figma } from "@solar-icons/react";
 import type { Client, BrandHubData, BrandColor } from "@/lib/types";
 import CsvImportModal from "./csv-import-modal";
 import EditIdentidadeModal from "../shared/edit-identidade-modal";
@@ -186,6 +186,7 @@ export default function BrandDetail({ client, brandHub, clients }: BrandDetailPr
   const [showAddFont, setShowAddFont] = useState(false);
   const [showAddLogo, setShowAddLogo] = useState(false);
   const [showEditIdentidade, setShowEditIdentidade] = useState(false);
+  const [showFigmaModal, setShowFigmaModal] = useState(false);
 
   if (!client) {
     return (
@@ -265,6 +266,12 @@ export default function BrandDetail({ client, brandHub, clients }: BrandDetailPr
         </div>
       </Section>
 
+      {/* Figma */}
+      <FigmaSection
+        figmaUrl={brandHub.figmaUrl}
+        onEdit={() => setShowFigmaModal(true)}
+      />
+
       {/* Histórico */}
       {brandHub.historico.length > 0 && (
         <Section title="Histórico de Alterações">
@@ -288,6 +295,13 @@ export default function BrandDetail({ client, brandHub, clients }: BrandDetailPr
       {showAddColor && <AddColorModal clientId={client.id} onClose={() => setShowAddColor(false)} />}
       {showAddFont && <AddFontModal clientId={client.id} onClose={() => setShowAddFont(false)} />}
       {showAddLogo && <AddLogoModal clientId={client.id} onClose={() => setShowAddLogo(false)} />}
+      {showFigmaModal && (
+        <FigmaLinkModal
+          clientId={client.id}
+          currentUrl={brandHub.figmaUrl || ""}
+          onClose={() => setShowFigmaModal(false)}
+        />
+      )}
       {showEditIdentidade && (
         <EditIdentidadeModal
           initialValues={{
@@ -486,6 +500,115 @@ function AddLogoModal({ clientId, onClose }: { clientId: string; onClose: () => 
             <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-border text-sm text-muted-soft hover:text-muted hover:border-border-hover transition-all">Cancelar</button>
             <button type="submit" disabled={saving} className="flex-1 py-2.5 rounded-xl bg-gradient-to-t from-[#1a1a1a] to-[#2a2a2a] border border-border-hover text-sm font-medium text-foreground hover:border-[#3a3a3a] transition-colors disabled:opacity-50">
               {saving ? "Salvando..." : "Adicionar"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ── Figma Section ── */
+function FigmaSection({ figmaUrl, onEdit }: { figmaUrl: string | null; onEdit: () => void }) {
+  const embedUrl = figmaUrl
+    ? `https://www.figma.com/embed?embed_host=share&url=${encodeURIComponent(figmaUrl)}`
+    : null;
+
+  return (
+    <div className="bg-gradient-to-b from-surface to-[#141414] rounded-2xl border border-border p-5">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Figma size={16} className="text-muted" />
+          <h3 className="text-sm font-medium text-gradient">Figma</h3>
+        </div>
+        <button
+          onClick={onEdit}
+          className="text-muted-soft hover:text-muted transition-colors flex items-center gap-1 text-xs"
+        >
+          <Pen size={12} /> {figmaUrl ? "Editar" : "Adicionar link"}
+        </button>
+      </div>
+
+      {embedUrl ? (
+        <div className="rounded-xl overflow-hidden border border-border bg-[#0a0a0a]">
+          <iframe
+            src={embedUrl}
+            className="w-full border-0"
+            style={{ height: "480px" }}
+            allowFullScreen
+          />
+          <div className="px-4 py-2.5 border-t border-border flex items-center justify-between">
+            <p className="text-[11px] text-muted-soft truncate max-w-[70%]">{figmaUrl}</p>
+            <a
+              href={figmaUrl!}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[11px] text-muted-soft hover:text-muted transition-colors px-2.5 py-1 rounded-lg border border-border hover:border-border-hover"
+            >
+              Abrir no Figma
+            </a>
+          </div>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-dashed border-border bg-[#0a0a0a] flex flex-col items-center justify-center py-12 gap-3">
+          <Figma size={32} className="text-muted-soft" />
+          <p className="text-xs text-muted-soft">Nenhum link do Figma adicionado.</p>
+          <button
+            onClick={onEdit}
+            className="text-xs text-muted-soft hover:text-muted transition-colors px-3 py-1.5 rounded-lg border border-border hover:border-border-hover"
+          >
+            Adicionar link
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Figma Link Modal ── */
+function FigmaLinkModal({ clientId, currentUrl, onClose }: { clientId: string; currentUrl: string; onClose: () => void }) {
+  const [url, setUrl] = useState(currentUrl);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (url && !url.includes("figma.com")) {
+      setError("O link deve ser do Figma (figma.com).");
+      return;
+    }
+    setSaving(true);
+    const { updateBrandFigmaUrl } = await import("@/actions/brand-hub");
+    const result = await updateBrandFigmaUrl(clientId, url);
+    if (result.error) { setError(result.error); setSaving(false); return; }
+    onClose();
+    window.location.reload();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-md bg-[#1a1a1a] border border-border rounded-2xl p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-sm font-semibold text-gradient">Link do Figma</h2>
+          <button onClick={onClose} className="text-muted hover:text-foreground transition-colors p-1"><CloseCircle size={18} /></button>
+        </div>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          <div>
+            <label className="text-xs font-medium text-muted block mb-1.5">URL do arquivo no Figma</label>
+            <input
+              value={url}
+              onChange={(e) => { setUrl(e.target.value); setError(""); }}
+              placeholder="https://www.figma.com/design/..."
+              className="w-full px-3.5 py-2.5 rounded-xl bg-[#141414] border border-border text-sm text-foreground focus:outline-none focus:border-border-hover transition-colors"
+            />
+          </div>
+          <p className="text-[10px] text-muted-soft">Cole o link do arquivo, frame ou protótipo do Figma. A pré-visualização será carregada automaticamente.</p>
+          {error && <p className="text-red-400 text-xs">{error}</p>}
+          <div className="flex gap-3 mt-1">
+            <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-border text-sm text-muted-soft hover:text-muted hover:border-border-hover transition-all">Cancelar</button>
+            <button type="submit" disabled={saving} className="flex-1 py-2.5 rounded-xl bg-gradient-to-t from-[#1a1a1a] to-[#2a2a2a] border border-border-hover text-sm font-medium text-foreground hover:border-[#3a3a3a] transition-colors disabled:opacity-50">
+              {saving ? "Salvando..." : "Salvar"}
             </button>
           </div>
         </form>
