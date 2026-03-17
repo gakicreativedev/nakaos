@@ -116,6 +116,18 @@ export async function deleteBrandLogo(logoId: string, clientId: string) {
   }
 }
 
+/* ── Figma URL ── */
+export async function updateBrandFigmaUrl(clientId: string, figmaUrl: string) {
+  try {
+    await db.update(schema.brandHubs).set({ figmaUrl: figmaUrl || null }).where(eq(schema.brandHubs.clientId, clientId));
+    await logAndUpdate(clientId, figmaUrl ? "Link do Figma atualizado" : "Link do Figma removido");
+    return { success: true };
+  } catch (error) {
+    console.error("[updateBrandFigmaUrl] Error:", error);
+    return { error: "Falha ao salvar link do Figma." };
+  }
+}
+
 /* ── Identidade ── */
 export async function updateBrandIdentity(
   clientId: string,

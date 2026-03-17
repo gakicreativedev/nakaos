@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { AltArrowLeft, CloseCircle, Pen, Figma } from "@solar-icons/react";
+import { AltArrowLeft, CloseCircle, Pen, Figma, Gallery } from "@solar-icons/react";
 import type {
   Projeto,
   ProjetoColor,
@@ -182,6 +182,7 @@ export default function ProjetoDetail({
 
 function TabGeral({ projeto, canEdit }: { projeto: Projeto; canEdit: boolean }) {
   const [showFigmaModal, setShowFigmaModal] = useState(false);
+  const [showCoverModal, setShowCoverModal] = useState(false);
 
   /* Build Figma embed URL from any figma.com link */
   const figmaEmbedUrl = projeto.figmaUrl
@@ -217,6 +218,44 @@ function TabGeral({ projeto, canEdit }: { projeto: Projeto; canEdit: boolean }) 
           <h3 className="text-sm font-medium text-gradient mb-3">Descrição</h3>
           <p className="text-sm text-[#c8c8c8] leading-relaxed">{projeto.descricao || "Nenhuma descrição."}</p>
         </div>
+      </div>
+
+      {/* Cover Image Preview */}
+      <div className="bg-gradient-to-b from-surface to-[#141414] rounded-2xl border border-border p-5">
+        <div className="flex items-center justify-between mb-4">
+           <div className="flex items-center gap-2">
+            <Gallery size={16} className="text-muted" />
+             <h3 className="text-sm font-medium text-gradient">Imagem de Capa</h3>
+           </div>
+           {canEdit && (
+             <button
+               onClick={() => setShowCoverModal(true)}
+               className="text-muted-soft hover:text-muted transition-colors flex items-center gap-1 text-xs"
+             >
+               <Pen size={12} /> {projeto.coverImage ? "Editar" : "Adicionar imagem"}
+             </button>
+           )}
+        </div>
+
+        {projeto.coverImage ? (
+           <div className="rounded-xl overflow-hidden border border-border bg-[#0a0a0a] group relative" style={{ aspectRatio: '3/1' }}>
+             {/* eslint-disable-next-line @next/next/no-img-element */}
+             <img src={projeto.coverImage} alt="Capa do projeto" className="w-full h-full object-cover" />
+           </div>
+        ) : (
+          <div className="rounded-xl border border-dashed border-border bg-[#0a0a0a] flex flex-col items-center justify-center py-12 gap-3 aspect-[3/1]">
+             <Gallery size={32} className="text-muted-soft" />
+             <p className="text-xs text-muted-soft">Nenhuma imagem de capa adicionada.</p>
+             {canEdit && (
+               <button
+                 onClick={() => setShowCoverModal(true)}
+                 className="text-xs text-muted-soft hover:text-muted transition-colors px-3 py-1.5 rounded-lg border border-border hover:border-border-hover"
+               >
+                 Adicionar imagem
+               </button>
+             )}
+          </div>
+        )}
       </div>
 
       {/* Figma Preview */}
@@ -279,6 +318,13 @@ function TabGeral({ projeto, canEdit }: { projeto: Projeto; canEdit: boolean }) 
           onClose={() => setShowFigmaModal(false)}
         />
       )}
+      {showCoverModal && (
+        <CoverImageModal
+          projetoId={projeto.id}
+          currentUrl={projeto.coverImage || ""}
+          onClose={() => setShowCoverModal(false)}
+        />
+      )}
     </div>
   );
 }
@@ -322,6 +368,54 @@ function FigmaLinkModal({ projetoId, currentUrl, onClose }: { projetoId: string;
             />
           </div>
           <p className="text-[10px] text-muted-soft">Cole o link do arquivo, frame ou protótipo do Figma. A pré-visualização será carregada automaticamente.</p>
+          {error && <p className="text-red-400 text-xs">{error}</p>}
+          <div className="flex gap-3 mt-1">
+            <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-border text-sm text-muted-soft hover:text-muted hover:border-border-hover transition-all">Cancelar</button>
+            <button type="submit" disabled={saving} className="flex-1 py-2.5 rounded-xl bg-gradient-to-t from-[#1a1a1a] to-[#2a2a2a] border border-border-hover text-sm font-medium text-foreground hover:border-[#3a3a3a] transition-colors disabled:opacity-50">
+              {saving ? "Salvando..." : "Salvar"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ── Cover Image Modal ── */
+function CoverImageModal({ projetoId, currentUrl, onClose }: { projetoId: string; currentUrl: string; onClose: () => void }) {
+  const [url, setUrl] = useState(currentUrl);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    const { updateProjetoCoverImage } = await import("@/actions/projetos");
+    const result = await updateProjetoCoverImage(projetoId, url);
+    if (result.error) { setError(result.error); setSaving(false); return; }
+    onClose();
+    window.location.reload();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-md bg-[#1a1a1a] border border-border rounded-2xl p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-sm font-semibold text-gradient">Imagem de Capa</h2>
+          <button onClick={onClose} className="text-muted hover:text-foreground transition-colors p-1"><CloseCircle size={18} /></button>
+        </div>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          <div>
+            <label className="text-xs font-medium text-muted block mb-1.5">URL da Imagem</label>
+            <input
+              value={url}
+              onChange={(e) => { setUrl(e.target.value); setError(""); }}
+              placeholder="https://exemplo.com/imagem.jpg"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-[#141414] border border-border text-sm text-foreground focus:outline-none focus:border-border-hover transition-colors"
+            />
+          </div>
+          <p className="text-[10px] text-muted-soft">Cole o link (URL) direto para uma imagem em alta resolução (ex: .png, .jpg, .webp).</p>
           {error && <p className="text-red-400 text-xs">{error}</p>}
           <div className="flex gap-3 mt-1">
             <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-border text-sm text-muted-soft hover:text-muted hover:border-border-hover transition-all">Cancelar</button>

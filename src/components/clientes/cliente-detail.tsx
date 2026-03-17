@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { AltArrowLeft } from "@solar-icons/react";
+import { AltArrowLeft, Gallery, Pen, CloseCircle } from "@solar-icons/react";
 import type { Client, ClientStatus, BrandHubData, BrandColor, Task, TaskPriority, Movimentacao } from "@/lib/types";
 
 const TABS = [
@@ -139,7 +139,7 @@ export default function ClienteDetail({ client, brandHub, tasks, movimentacoes, 
 
       {/* Tab Content */}
       <div className="flex-1 min-h-0">
-        {activeTab === "geral" && <TabGeral client={client} />}
+        {activeTab === "geral" && <TabGeral client={client} canEdit={userRole === "Admin" || userRole === "Editor"} />}
         {activeTab === "contrato" && <TabContrato client={client} />}
         {activeTab === "brand-hub" && <TabBrandHub clientId={client.id} brandHub={brandHub} />}
         {activeTab === "tarefas" && <TabTarefas clientId={client.id} tasks={clientTasks} />}
@@ -160,9 +160,49 @@ function InfoField({ label, value }: { label: string; value: string }) {
 }
 
 /* ── Tab: Dados Gerais ── */
-function TabGeral({ client }: { client: Client }) {
+function TabGeral({ client, canEdit }: { client: Client; canEdit: boolean }) {
+  const [showCoverModal, setShowCoverModal] = useState(false);
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {/* Imagem de Capa */}
+      <div className="bg-gradient-to-b from-surface to-[#141414] rounded-2xl border border-border p-5 lg:col-span-2">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Gallery size={16} className="text-muted" />
+            <h3 className="text-sm font-medium text-gradient">Imagem de Capa</h3>
+          </div>
+          {canEdit && (
+            <button
+              onClick={() => setShowCoverModal(true)}
+              className="text-muted-soft hover:text-muted transition-colors flex items-center gap-1 text-xs"
+            >
+              <Pen size={12} /> {client.coverImage ? "Editar" : "Adicionar imagem"}
+            </button>
+          )}
+        </div>
+
+        {client.coverImage ? (
+           <div className="rounded-xl overflow-hidden border border-border bg-[#0a0a0a] group relative" style={{ aspectRatio: '3/1' }}>
+             {/* eslint-disable-next-line @next/next/no-img-element */}
+             <img src={client.coverImage} alt="Capa do cliente" className="w-full h-full object-cover" />
+           </div>
+        ) : (
+          <div className="rounded-xl border border-dashed border-border bg-[#0a0a0a] flex flex-col items-center justify-center py-12 gap-3 aspect-[3/1]">
+             <Gallery size={32} className="text-muted-soft" />
+             <p className="text-xs text-muted-soft">Nenhuma imagem de capa adicionada.</p>
+             {canEdit && (
+               <button
+                 onClick={() => setShowCoverModal(true)}
+                 className="text-xs text-muted-soft hover:text-muted transition-colors px-3 py-1.5 rounded-lg border border-border hover:border-border-hover"
+               >
+                 Adicionar imagem
+               </button>
+             )}
+          </div>
+        )}
+      </div>
+
       {/* Informações Básicas */}
       <div className="bg-gradient-to-b from-surface to-[#141414] rounded-2xl border border-border p-5">
         <h3 className="text-sm font-medium text-gradient mb-4">Informações Básicas</h3>
@@ -192,6 +232,14 @@ function TabGeral({ client }: { client: Client }) {
         <h3 className="text-sm font-medium text-gradient mb-3">Observações</h3>
         <p className="text-sm text-[#c8c8c8] leading-relaxed">{client.observacoes || "Nenhuma observação."}</p>
       </div>
+
+      {showCoverModal && (
+        <ClientCoverImageModal
+          clientId={client.id}
+          currentUrl={client.coverImage || ""}
+          onClose={() => setShowCoverModal(false)}
+        />
+      )}
     </div>
   );
 }
@@ -418,6 +466,54 @@ function TabFinanceiro({ clientId, movimentacoes: movs }: { clientId: string; mo
             </div>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+/* ── Cover Image Modal ── */
+function ClientCoverImageModal({ clientId, currentUrl, onClose }: { clientId: string; currentUrl: string; onClose: () => void }) {
+  const [url, setUrl] = useState(currentUrl);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    const { updateClientCoverImage } = await import("@/actions/clientes");
+    const result = await updateClientCoverImage(clientId, url);
+    if (result.error) { setError(result.error); setSaving(false); return; }
+    onClose();
+    window.location.reload();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-md bg-[#1a1a1a] border border-border rounded-2xl p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-sm font-semibold text-gradient">Imagem de Capa</h2>
+          <button onClick={onClose} className="text-muted hover:text-foreground transition-colors p-1"><CloseCircle size={18} /></button>
+        </div>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          <div>
+            <label className="text-xs font-medium text-muted block mb-1.5">URL da Imagem</label>
+            <input
+              value={url}
+              onChange={(e) => { setUrl(e.target.value); setError(""); }}
+              placeholder="https://exemplo.com/capa.jpg"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-[#141414] border border-border text-sm text-foreground focus:outline-none focus:border-border-hover transition-colors"
+            />
+          </div>
+          <p className="text-[10px] text-muted-soft">Cole o link (URL) direto para uma imagem em alta resolução (ex: .png, .jpg, .webp).</p>
+          {error && <p className="text-red-400 text-xs">{error}</p>}
+          <div className="flex gap-3 mt-1">
+            <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-border text-sm text-muted-soft hover:text-muted hover:border-border-hover transition-all">Cancelar</button>
+            <button type="submit" disabled={saving} className="flex-1 py-2.5 rounded-xl bg-gradient-to-t from-[#1a1a1a] to-[#2a2a2a] border border-border-hover text-sm font-medium text-foreground hover:border-[#3a3a3a] transition-colors disabled:opacity-50">
+              {saving ? "Salvando..." : "Salvar"}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

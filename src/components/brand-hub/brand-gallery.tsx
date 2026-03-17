@@ -50,13 +50,17 @@ export default function BrandGallery({ clients, brandHubs }: BrandGalleryProps) 
               className="group relative rounded-2xl overflow-hidden border border-border hover:border-border-hover transition-all duration-300 cursor-pointer"
               style={{ aspectRatio: "1/1" }}
             >
-              {/* Visual top area — gradient with brand colors */}
+              {/* Visual top area — background image if coverImage exists, otherwise gradient */}
               <div
-                className="absolute inset-0 rounded-2xl"
+                className="absolute inset-0 rounded-2xl bg-center bg-cover bg-no-repeat transition-transform duration-700 group-hover:scale-105"
                 style={{
-                  background: `radial-gradient(ellipse at 70% 30%, ${primaryColor}44, transparent 60%), radial-gradient(ellipse at 30% 70%, ${secondaryColor}33, transparent 60%), linear-gradient(180deg, ${primaryColor}22 0%, #0f0f0f 70%)`,
+                  backgroundImage: client.coverImage
+                    ? `url(${client.coverImage})`
+                    : `radial-gradient(ellipse at 70% 30%, ${primaryColor}44, transparent 60%), radial-gradient(ellipse at 30% 70%, ${secondaryColor}33, transparent 60%), linear-gradient(180deg, ${primaryColor}22 0%, #0f0f0f 70%)`,
                 }}
               />
+              {/* Dark gradient overlay to ensure text readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10" />
 
               {/* Top layer — brand name */}
               <div className="relative z-10 p-5 h-full flex flex-col justify-between">
@@ -123,7 +127,7 @@ export default function BrandGallery({ clients, brandHubs }: BrandGalleryProps) 
               href={`/brand-hub/${client.id}`}
               className="px-4 py-2 rounded-xl border border-border text-xs font-medium text-muted-soft hover:text-muted hover:border-border-hover transition-all"
             >
-              + Criar Brand Hub
+              + Criar Brand
             </Link>
           </div>
         ))}

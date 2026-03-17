@@ -18,6 +18,7 @@ export interface Client {
   dataInicio: string;
   dataRenovacao: string;
   observacoes: string;
+  coverImage: string | null;
   criadoEm: string;
 }
 
@@ -63,6 +64,7 @@ export interface BrandHubData {
   slogan: string;
   concorrentes: string;
   restricoesVisuais: string;
+  figmaUrl: string | null;
   ultimaAtualizacao: string;
   logos: BrandLogo[];
   cores: BrandColor[];
@@ -180,6 +182,7 @@ export interface Projeto {
   descricao: string;
   logo: string | null;
   figmaUrl: string | null;
+  coverImage: string | null;
   status: string;
   criadoEm: string;
   atualizadoEm: string;

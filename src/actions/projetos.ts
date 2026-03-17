@@ -39,6 +39,17 @@ export async function createProjeto(nome: string, descricao: string) {
   }
 }
 
+export async function updateProjetoCoverImage(projetoId: string, coverImage: string) {
+  try {
+    await db.update(schema.projetos).set({ coverImage: coverImage || null, atualizadoEm: new Date().toISOString().split("T")[0] }).where(eq(schema.projetos.id, projetoId));
+    revalidatePath(`/projetos/${projetoId}`);
+    return { success: true };
+  } catch (error) {
+    console.error("[updateProjetoCoverImage] Error:", error);
+    return { error: "Falha ao salvar Imagem de Capa." };
+  }
+}
+
 export async function updateProjetoStatus(projetoId: string, status: string) {
   try {
     const valid = ["Ativo", "Pausado", "Concluído", "Arquivado"];

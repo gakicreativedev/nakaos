@@ -22,6 +22,7 @@ export const clients = pgTable("clients", {
   dataInicio: text("data_inicio").notNull(),
   dataRenovacao: text("data_renovacao").notNull(),
   observacoes: text("observacoes").notNull().default(""),
+  coverImage: text("cover_image"),
   criadoEm: text("criado_em").notNull(),
 });
 
@@ -59,6 +60,7 @@ export const brandHubs = pgTable("brand_hubs", {
   slogan: text("slogan").notNull().default(""),
   concorrentes: text("concorrentes").notNull().default(""),
   restricoesVisuais: text("restricoes_visuais").notNull().default(""),
+  figmaUrl: text("figma_url"),
   ultimaAtualizacao: text("ultima_atualizacao").notNull(),
 });
 
@@ -137,6 +139,7 @@ export const projetos = pgTable("projetos", {
   logo: text("logo"),
   status: text("status").notNull(), // Ativo | Pausado | Concluído | Arquivado
   figmaUrl: text("figma_url"),
+  coverImage: text("cover_image"),
   criadoEm: text("criado_em").notNull(),
   atualizadoEm: text("atualizado_em").notNull(),
 });

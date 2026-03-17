@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { AltArrowLeft, AddCircle, Gallery, Import, CloseCircle, TrashBinMinimalistic, Pen, Figma } from "@solar-icons/react";
 import type { Client, BrandHubData, BrandColor } from "@/lib/types";
 import CsvImportModal from "./csv-import-modal";
@@ -342,13 +343,15 @@ function BackHeader({ clientName }: { clientName: string }) {
 
 function EmptyBrandHub({ clientId, clientName }: { clientId: string; clientName: string }) {
   const [creating, setCreating] = useState(false);
+  const router = useRouter();
 
   const handleCreate = async () => {
     setCreating(true);
     const { createBrandHub } = await import("@/actions/brand-hub");
     const result = await createBrandHub(clientId);
     if (result.success) {
-      window.location.reload();
+      router.refresh();
+      setTimeout(() => window.location.reload(), 100);
     } else {
       setCreating(false);
     }
@@ -359,14 +362,14 @@ function EmptyBrandHub({ clientId, clientName }: { clientId: string; clientName:
       <div className="w-16 h-16 rounded-2xl bg-[#141414] flex items-center justify-center text-2xl font-semibold text-muted mb-4">
         {clientName[0]}
       </div>
-      <p className="text-sm font-medium text-muted-soft mb-1">Nenhum Brand Hub criado</p>
+      <p className="text-sm font-medium text-muted-soft mb-1">Nenhuma Marca criada</p>
       <p className="text-xs text-muted-soft mb-6">Crie a identidade visual de {clientName} para centralizar todas as diretrizes da marca.</p>
       <button
         onClick={handleCreate}
         disabled={creating}
         className="px-5 py-2.5 rounded-xl bg-gradient-to-t from-[#1a1a1a] to-[#2a2a2a] border border-border-hover text-sm font-medium text-foreground hover:border-[#3a3a3a] transition-colors disabled:opacity-50"
       >
-        {creating ? "Criando..." : "+ Criar Brand Hub"}
+        {creating ? "Criando..." : "+ Criar Brand"}
       </button>
     </div>
   );

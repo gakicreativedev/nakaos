@@ -20,6 +20,18 @@ export async function updateClientStatus(clientId: string, status: string) {
   }
 }
 
+export async function updateClientCoverImage(clientId: string, coverImage: string) {
+  try {
+    await db.update(schema.clients).set({ coverImage: coverImage || null }).where(eq(schema.clients.id, clientId));
+    revalidatePath(`/clientes/${clientId}`);
+    revalidatePath("/clientes");
+    return { success: true };
+  } catch (error) {
+    console.error("[updateClientCoverImage] Error:", error);
+    return { error: "Falha ao salvar Imagem de Capa." };
+  }
+}
+
 export async function createClient(formData: FormData) {
   try {
     const nome = formData.get("nome") as string;
@@ -29,6 +41,7 @@ export async function createClient(formData: FormData) {
     const email = formData.get("email") as string || "";
     const endereco = formData.get("endereco") as string || "";
     const observacoes = formData.get("observacoes") as string || "";
+    const coverImage = formData.get("coverImage") as string || null;
     const valorMensalRaw = formData.get("valorMensal") as string || "0";
     const dataInicio = formData.get("dataInicio") as string || new Date().toISOString().split("T")[0];
 
@@ -73,6 +86,7 @@ export async function createClient(formData: FormData) {
       dataInicio,
       dataRenovacao,
       observacoes,
+      coverImage,
       criadoEm
     });
 

@@ -142,11 +142,23 @@ export default function ClientesList({ clients }: ClientesListProps) {
                 href={`/clientes/${client.id}`}
                 className="group rounded-3xl overflow-hidden border border-white/[0.06] hover:border-white/[0.12] transition-all hover:shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
               >
-                {/* Top section - status-based gradient with contract value */}
-                <div className={`relative h-[110px] bg-gradient-to-br ${(STATUS_GRADIENTS[client.status] ?? STATUS_GRADIENTS.Ativo).card} p-5 flex flex-col justify-between overflow-hidden`}>
-                  {/* Shine effect */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-60" />
-                  <div className="absolute top-0 left-0 w-[60%] h-full bg-gradient-to-r from-white/10 to-transparent rounded-br-[60%]" />
+                {/* Top section - cover image or status-based gradient */}
+                <div 
+                  className={`relative h-[110px] p-5 flex flex-col justify-between overflow-hidden ${!client.coverImage ? `bg-gradient-to-br ${(STATUS_GRADIENTS[client.status] ?? STATUS_GRADIENTS.Ativo).card}` : ''}`}
+                >
+                  {client.coverImage ? (
+                    <>
+                       {/* eslint-disable-next-line @next/next/no-img-element */}
+                       <img src={client.coverImage} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt={`${client.nome} cover`} />
+                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
+                    </>
+                  ) : (
+                    <>
+                      {/* Shine effect for gradients */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-60" />
+                      <div className="absolute top-0 left-0 w-[60%] h-full bg-gradient-to-r from-white/10 to-transparent rounded-br-[60%]" />
+                    </>
+                  )}
 
                   <div className="relative z-10 flex items-start justify-between">
                     <div className="w-9 h-9 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center text-xs font-bold text-white">
@@ -253,7 +265,10 @@ function NewClientModal({ onClose }: { onClose: () => void }) {
             <FormField name="responsavel" label="Responsável" placeholder="Nome do contato" required />
             <FormField name="telefone" label="Telefone" placeholder="(00) 00000-0000" />
           </div>
-          <FormField name="email" label="E-mail" placeholder="contato@empresa.com.br" type="email" />
+          <div className="grid grid-cols-2 gap-3">
+            <FormField name="email" label="E-mail" placeholder="contato@empresa.com.br" type="email" />
+            <FormField name="coverImage" label="URL Imagem de Capa" placeholder="https://exemplo.com/capa.jpg" />
+          </div>
           <FormField name="endereco" label="Endereço" placeholder="Rua, número - Cidade, UF" />
 
           <div className="border-t border-border pt-4 mt-2">
