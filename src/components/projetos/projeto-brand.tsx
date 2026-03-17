@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { AddCircle, CloseCircle, TrashBinMinimalistic, Gallery, Pen } from "@solar-icons/react";
+import { AddCircle, CloseCircle, TrashBinMinimalistic, Gallery, Pen, Import } from "@solar-icons/react";
 import type { ProjetoColor, ProjetoFont, ProjetoLogo, ProjetoIdentidade, ProjetoHistorico } from "@/lib/types";
+import ProjetoCsvImportModal from "./projeto-csv-import-modal";
+import EditIdentidadeModal from "../shared/edit-identidade-modal";
 
 interface ProjetoBrandProps {
   projetoId: string;
@@ -19,9 +21,22 @@ export default function ProjetoBrand({ projetoId, colors, fonts, logos, identida
   const [showAddFont, setShowAddFont] = useState(false);
   const [showAddLogo, setShowAddLogo] = useState(false);
   const [showEditIdentidade, setShowEditIdentidade] = useState(false);
+  const [showCsvImport, setShowCsvImport] = useState(false);
 
   return (
     <div className="flex flex-col gap-6">
+      {/* CSV Import button */}
+      {canEdit && (
+        <div className="flex justify-end">
+          <button
+            onClick={() => setShowCsvImport(true)}
+            className="flex items-center gap-1.5 text-xs text-muted-soft hover:text-muted transition-colors px-3 py-1.5 rounded-lg border border-border hover:border-border-hover"
+          >
+            <Import size={14} />
+            Importar CSV
+          </button>
+        </div>
+      )}
       {/* Logos */}
       <Section title="Logos" count={logos.length}>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -102,7 +117,26 @@ export default function ProjetoBrand({ projetoId, colors, fonts, logos, identida
       {showAddColor && <AddColorModal projetoId={projetoId} onClose={() => setShowAddColor(false)} />}
       {showAddFont && <AddFontModal projetoId={projetoId} onClose={() => setShowAddFont(false)} />}
       {showAddLogo && <AddLogoModal projetoId={projetoId} onClose={() => setShowAddLogo(false)} />}
-      {showEditIdentidade && <EditIdentidadeModal projetoId={projetoId} identidade={identidade} onClose={() => setShowEditIdentidade(false)} />}
+      {showEditIdentidade && (
+        <EditIdentidadeModal
+          initialValues={{
+            nicho: identidade?.nicho || "",
+            publicoAlvo: identidade?.publicoAlvo || "",
+            tomDeVoz: identidade?.tomDeVoz || "",
+            slogan: identidade?.slogan || "",
+            concorrentes: identidade?.concorrentes || "",
+            restricoesVisuais: identidade?.restricoesVisuais || "",
+          }}
+          onSave={async (fields) => {
+            const { upsertProjetoIdentidade } = await import("@/actions/projetos");
+            await upsertProjetoIdentidade(projetoId, fields);
+            setShowEditIdentidade(false);
+            window.location.reload();
+          }}
+          onClose={() => setShowEditIdentidade(false)}
+        />
+      )}
+      {showCsvImport && <ProjetoCsvImportModal projetoId={projetoId} onClose={() => setShowCsvImport(false)} />}
     </div>
   );
 }
@@ -131,10 +165,18 @@ function Section({ title, count, action, children }: { title: string; count?: nu
 
 /* ── Text Section Block ── */
 function TextSection({ label, value }: { label: string; value: string }) {
+  const isEmpty = !value || value === "<p></p>" || value === "<p></p>\n";
   return (
     <div className="bg-[#141414] rounded-2xl border border-border p-5">
       <p className="text-[11px] font-medium text-muted uppercase tracking-wider mb-2">{label}</p>
-      <p className="text-sm text-[#c8c8c8] leading-relaxed">{value || "—"}</p>
+      {isEmpty ? (
+        <p className="text-sm text-[#c8c8c8] leading-relaxed">—</p>
+      ) : (
+        <div
+          className="text-sm text-[#c8c8c8] leading-relaxed prose-display"
+          dangerouslySetInnerHTML={{ __html: value }}
+        />
+      )}
     </div>
   );
 }
@@ -414,70 +456,3 @@ function AddFontModal({ projetoId, onClose }: { projetoId: string; onClose: () =
   );
 }
 
-/* ── Edit Identidade Modal ── */
-function EditIdentidadeModal({ projetoId, identidade, onClose }: { projetoId: string; identidade: ProjetoIdentidade | null; onClose: () => void }) {
-  const [nicho, setNicho] = useState(identidade?.nicho || "");
-  const [publicoAlvo, setPublicoAlvo] = useState(identidade?.publicoAlvo || "");
-  const [tomDeVoz, setTomDeVoz] = useState(identidade?.tomDeVoz || "");
-  const [slogan, setSlogan] = useState(identidade?.slogan || "");
-  const [concorrentes, setConcorrentes] = useState(identidade?.concorrentes || "");
-  const [restricoesVisuais, setRestricoesVisuais] = useState(identidade?.restricoesVisuais || "");
-  const [saving, setSaving] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-    const { upsertProjetoIdentidade } = await import("@/actions/projetos");
-    await upsertProjetoIdentidade(projetoId, { nicho, publicoAlvo, tomDeVoz, slogan, concorrentes, restricoesVisuais });
-    onClose();
-    window.location.reload();
-  };
-
-  const inputCls = "w-full px-3.5 py-2.5 rounded-xl bg-[#141414] border border-border text-sm text-foreground focus:outline-none focus:border-border-hover transition-colors";
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-lg bg-[#1a1a1a] border border-border rounded-2xl p-6 max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-lg font-semibold text-gradient">Identidade da Marca</h2>
-          <button onClick={onClose} className="text-muted hover:text-foreground transition-colors p-1"><CloseCircle size={18} /></button>
-        </div>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-medium text-muted block mb-1.5">Nicho</label>
-              <input value={nicho} onChange={(e) => setNicho(e.target.value)} className={inputCls} />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-muted block mb-1.5">Público-alvo</label>
-              <input value={publicoAlvo} onChange={(e) => setPublicoAlvo(e.target.value)} className={inputCls} />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-muted block mb-1.5">Tom de Voz</label>
-              <input value={tomDeVoz} onChange={(e) => setTomDeVoz(e.target.value)} className={inputCls} />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-muted block mb-1.5">Slogan</label>
-              <input value={slogan} onChange={(e) => setSlogan(e.target.value)} className={inputCls} />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-muted block mb-1.5">Concorrentes</label>
-              <input value={concorrentes} onChange={(e) => setConcorrentes(e.target.value)} className={inputCls} />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-muted block mb-1.5">Restrições Visuais</label>
-              <input value={restricoesVisuais} onChange={(e) => setRestricoesVisuais(e.target.value)} className={inputCls} />
-            </div>
-          </div>
-          <div className="flex gap-3 mt-2">
-            <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-border text-sm text-muted-soft hover:text-muted hover:border-border-hover transition-all">Cancelar</button>
-            <button type="submit" disabled={saving} className="flex-1 py-2.5 rounded-xl bg-gradient-to-t from-[#1a1a1a] to-[#2a2a2a] border border-border-hover text-sm font-medium text-foreground hover:border-[#3a3a3a] transition-colors disabled:opacity-50">
-              {saving ? "Salvando..." : "Salvar"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}

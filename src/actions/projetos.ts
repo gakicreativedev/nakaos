@@ -54,6 +54,18 @@ export async function updateProjetoStatus(projetoId: string, status: string) {
   }
 }
 
+/* ── Figma URL ── */
+export async function updateProjetoFigmaUrl(projetoId: string, figmaUrl: string) {
+  try {
+    await db.update(schema.projetos).set({ figmaUrl: figmaUrl || null, atualizadoEm: new Date().toISOString().split("T")[0] }).where(eq(schema.projetos.id, projetoId));
+    revalidatePath(`/projetos/${projetoId}`);
+    return { success: true };
+  } catch (error) {
+    console.error("[updateProjetoFigmaUrl] Error:", error);
+    return { error: "Falha ao salvar link do Figma." };
+  }
+}
+
 /* ── Brand: Logos ── */
 export async function addProjetoLogo(projetoId: string, categoria: string, url: string) {
   try {

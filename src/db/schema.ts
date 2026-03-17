@@ -136,6 +136,7 @@ export const projetos = pgTable("projetos", {
   descricao: text("descricao").notNull().default(""),
   logo: text("logo"),
   status: text("status").notNull(), // Ativo | Pausado | Concluído | Arquivado
+  figmaUrl: text("figma_url"),
   criadoEm: text("criado_em").notNull(),
   atualizadoEm: text("atualizado_em").notNull(),
 });

@@ -179,6 +179,7 @@ export interface Projeto {
   nome: string;
   descricao: string;
   logo: string | null;
+  figmaUrl: string | null;
   status: string;
   criadoEm: string;
   atualizadoEm: string;
