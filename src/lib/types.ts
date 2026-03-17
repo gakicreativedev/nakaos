@@ -170,3 +170,96 @@ export const ROLE_PERMISSIONS: Record<string, { label: string; descricao: string
 };
 
 export const MOCK_TAGS = ["Redes Sociais", "Tráfego Pago", "Conteúdo", "Design", "Estratégia", "Urgente", "Reunião"];
+
+/* ── Projetos ── */
+export type ProjetoStatus = "Ativo" | "Pausado" | "Concluído" | "Arquivado";
+
+export interface Projeto {
+  id: string;
+  nome: string;
+  descricao: string;
+  logo: string | null;
+  status: string;
+  criadoEm: string;
+  atualizadoEm: string;
+}
+
+export interface ProjetoColor {
+  id: string;
+  projetoId: string;
+  nome: string;
+  hex: string;
+  rgb: string;
+  cmyk: string;
+}
+
+export interface ProjetoFont {
+  id: string;
+  projetoId: string;
+  nome: string;
+  categoria: string;
+  downloadUrl: string;
+}
+
+export interface ProjetoLogo {
+  id: string;
+  projetoId: string;
+  categoria: string;
+  url: string;
+  linkExterno: string | null;
+}
+
+export interface ProjetoIdentidade {
+  projetoId: string;
+  nicho: string;
+  publicoAlvo: string;
+  tomDeVoz: string;
+  slogan: string;
+  concorrentes: string;
+  restricoesVisuais: string;
+}
+
+export interface ProjetoHistorico {
+  id: string;
+  projetoId: string;
+  data: string;
+  usuario: string;
+  descricao: string;
+}
+
+export interface ProjetoAsset {
+  id: string;
+  projetoId: string;
+  nome: string;
+  url: string;
+  tipo: string;
+  criadoEm: string;
+}
+
+export interface ProjetoKanbanColumn {
+  id: string;
+  titulo: string;
+  projetoId: string;
+  ordem: number;
+}
+
+export interface ProjetoTask {
+  id: string;
+  titulo: string;
+  descricao: string;
+  responsavel: string;
+  prazo: string;
+  prioridade: string;
+  tags: string[];
+  projetoId: string;
+  colunaId: string;
+  criadoEm: string;
+}
+
+export interface ProjetoMembro {
+  id: string;
+  projetoId: string;
+  usuarioId: string;
+  papel: string;
+  criadoEm: string;
+}

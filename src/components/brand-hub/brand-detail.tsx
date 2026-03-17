@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { AltArrowLeft, AddCircle, Gallery } from "@solar-icons/react";
+import { AltArrowLeft, AddCircle, Gallery, Import } from "@solar-icons/react";
 import type { Client, BrandHubData, BrandColor } from "@/lib/types";
+import CsvImportModal from "./csv-import-modal";
 
 /* ── Color Card with copy-on-click ── */
 function ColorCard({ cor }: { cor: BrandColor }) {
@@ -119,11 +120,13 @@ function TextSection({ label, value }: { label: string; value: string }) {
 /* ── Main Component ── */
 interface BrandDetailProps {
   client: Client;
-  brandHub: BrandHubData;
+  brandHub: BrandHubData | null;
   clients: Client[];
 }
 
 export default function BrandDetail({ client, brandHub, clients }: BrandDetailProps) {
+  const [showCsvImport, setShowCsvImport] = useState(false);
+
   if (!client) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-muted-soft">
@@ -137,14 +140,24 @@ export default function BrandDetail({ client, brandHub, clients }: BrandDetailPr
     return (
       <>
         <BackHeader clientName={client.nome} />
-        <EmptyBrandHub clientName={client.nome} />
+        <EmptyBrandHub clientId={client.id} clientName={client.nome} />
       </>
     );
   }
 
   return (
     <>
-      <BackHeader clientName={client.nome} />
+      <div className="flex items-center justify-between">
+        <BackHeader clientName={client.nome} />
+        <button
+          onClick={() => setShowCsvImport(true)}
+          className="px-4 py-2 rounded-xl bg-gradient-to-t from-[#1a1a1a] to-[#2a2a2a] border border-border-hover text-xs font-medium text-foreground hover:border-[#3a3a3a] transition-colors flex items-center gap-2"
+        >
+          <Import size={14} /> Importar CSV
+        </button>
+      </div>
+
+      {showCsvImport && <CsvImportModal clientId={client.id} onClose={() => setShowCsvImport(false)} />}
 
       {/* Logos */}
       <Section title="Logos" count={brandHub.logos.length}>
@@ -241,7 +254,20 @@ function Section({ title, count, children }: { title: string; count?: number; ch
   );
 }
 
-function EmptyBrandHub({ clientName }: { clientName: string }) {
+function EmptyBrandHub({ clientId, clientName }: { clientId: string; clientName: string }) {
+  const [creating, setCreating] = useState(false);
+
+  const handleCreate = async () => {
+    setCreating(true);
+    const { createBrandHub } = await import("@/actions/brand-hub");
+    const result = await createBrandHub(clientId);
+    if (result.success) {
+      window.location.reload();
+    } else {
+      setCreating(false);
+    }
+  };
+
   return (
     <div className="bg-gradient-to-b from-surface to-[#141414] rounded-2xl border border-dashed border-border p-12 flex flex-col items-center text-center">
       <div className="w-16 h-16 rounded-2xl bg-[#141414] flex items-center justify-center text-2xl font-semibold text-muted mb-4">
@@ -249,8 +275,12 @@ function EmptyBrandHub({ clientName }: { clientName: string }) {
       </div>
       <p className="text-sm font-medium text-muted-soft mb-1">Nenhum Brand Hub criado</p>
       <p className="text-xs text-muted-soft mb-6">Crie a identidade visual de {clientName} para centralizar todas as diretrizes da marca.</p>
-      <button className="px-5 py-2.5 rounded-xl bg-gradient-to-t from-[#1a1a1a] to-[#2a2a2a] border border-border-hover text-sm font-medium text-foreground hover:border-[#3a3a3a] transition-colors">
-        + Criar Brand Hub
+      <button
+        onClick={handleCreate}
+        disabled={creating}
+        className="px-5 py-2.5 rounded-xl bg-gradient-to-t from-[#1a1a1a] to-[#2a2a2a] border border-border-hover text-sm font-medium text-foreground hover:border-[#3a3a3a] transition-colors disabled:opacity-50"
+      >
+        {creating ? "Criando..." : "+ Criar Brand Hub"}
       </button>
     </div>
   );

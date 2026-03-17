@@ -8,6 +8,7 @@ import {
   WalletMoney,
   Settings,
   AltArrowLeft,
+  Folder2,
 } from "@solar-icons/react";
 
 export function HomeIcon({ className }: { className?: string }) {
@@ -32,6 +33,10 @@ export function FinanceIcon({ className }: { className?: string }) {
 
 export function SettingsIcon({ className }: { className?: string }) {
   return <Settings size={20} className={className} />;
+}
+
+export function ProjectsIcon({ className }: { className?: string }) {
+  return <Folder2 size={20} className={className} />;
 }
 
 export function ChevronLeftIcon({ className }: { className?: string }) {

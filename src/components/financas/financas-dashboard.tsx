@@ -66,6 +66,26 @@ function BarChart({ data }: { data: { label: string; entradas: number; saidas: n
 
 /* ── New Movimentação Modal ── */
 function NewMovimentacaoModal({ onClose, clients }: { onClose: () => void; clients: Client[] }) {
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setSaving(true);
+    setFormError("");
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const { createMovimentacao } = await import("@/actions/movimentacoes");
+    const result = await createMovimentacao(formData);
+    if (result.error) {
+      setFormError(result.error);
+      setSaving(false);
+      return;
+    }
+    onClose();
+    window.location.reload();
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
@@ -77,21 +97,21 @@ function NewMovimentacaoModal({ onClose, clients }: { onClose: () => void; clien
           </button>
         </div>
 
-        <form className="flex flex-col gap-4" onSubmit={(e) => { e.preventDefault(); onClose(); }}>
+        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs font-medium text-muted block mb-1.5">Valor <span className="text-urgent">*</span></label>
-              <input type="text" placeholder="R$ 0,00" required className="w-full px-3.5 py-2.5 rounded-xl bg-[#141414] border border-border text-sm text-foreground placeholder:text-muted-soft focus:outline-none focus:border-border-hover transition-colors" />
+              <input name="valor" type="text" placeholder="R$ 0,00" required className="w-full px-3.5 py-2.5 rounded-xl bg-[#141414] border border-border text-sm text-foreground placeholder:text-muted-soft focus:outline-none focus:border-border-hover transition-colors" />
             </div>
             <div>
               <label className="text-xs font-medium text-muted block mb-1.5">Data <span className="text-urgent">*</span></label>
-              <input type="date" required className="w-full px-3.5 py-2.5 rounded-xl bg-[#141414] border border-border text-sm text-foreground focus:outline-none focus:border-border-hover transition-colors" />
+              <input name="data" type="date" required className="w-full px-3.5 py-2.5 rounded-xl bg-[#141414] border border-border text-sm text-foreground focus:outline-none focus:border-border-hover transition-colors" />
             </div>
           </div>
 
           <div>
             <label className="text-xs font-medium text-muted block mb-1.5">Categoria <span className="text-urgent">*</span></label>
-            <select className="w-full px-3.5 py-2.5 rounded-xl bg-[#141414] border border-border text-sm text-foreground focus:outline-none focus:border-border-hover transition-colors">
+            <select name="categoria" required className="w-full px-3.5 py-2.5 rounded-xl bg-[#141414] border border-border text-sm text-foreground focus:outline-none focus:border-border-hover transition-colors">
               <option value="">Selecionar...</option>
               <option value="Receita">Receita</option>
               <option value="Despesa Operacional">Despesa Operacional</option>
@@ -103,12 +123,12 @@ function NewMovimentacaoModal({ onClose, clients }: { onClose: () => void; clien
 
           <div>
             <label className="text-xs font-medium text-muted block mb-1.5">Descrição</label>
-            <input type="text" placeholder="Detalhamento do lançamento" className="w-full px-3.5 py-2.5 rounded-xl bg-[#141414] border border-border text-sm text-foreground placeholder:text-muted-soft focus:outline-none focus:border-border-hover transition-colors" />
+            <input name="descricao" type="text" placeholder="Detalhamento do lançamento" className="w-full px-3.5 py-2.5 rounded-xl bg-[#141414] border border-border text-sm text-foreground placeholder:text-muted-soft focus:outline-none focus:border-border-hover transition-colors" />
           </div>
 
           <div>
             <label className="text-xs font-medium text-muted block mb-1.5">Cliente vinculado</label>
-            <select className="w-full px-3.5 py-2.5 rounded-xl bg-[#141414] border border-border text-sm text-foreground focus:outline-none focus:border-border-hover transition-colors">
+            <select name="clientId" className="w-full px-3.5 py-2.5 rounded-xl bg-[#141414] border border-border text-sm text-foreground focus:outline-none focus:border-border-hover transition-colors">
               <option value="">Nenhum (interno)</option>
               {clients.map((c) => (
                 <option key={c.id} value={c.id}>{c.nome}</option>
@@ -118,7 +138,7 @@ function NewMovimentacaoModal({ onClose, clients }: { onClose: () => void; clien
 
           <div>
             <label className="text-xs font-medium text-muted block mb-1.5">Status</label>
-            <select className="w-full px-3.5 py-2.5 rounded-xl bg-[#141414] border border-border text-sm text-foreground focus:outline-none focus:border-border-hover transition-colors">
+            <select name="status" className="w-full px-3.5 py-2.5 rounded-xl bg-[#141414] border border-border text-sm text-foreground focus:outline-none focus:border-border-hover transition-colors">
               <option value="Pendente">Pendente</option>
               <option value="Pago">Pago</option>
               <option value="Agendado">Agendado</option>
@@ -132,12 +152,14 @@ function NewMovimentacaoModal({ onClose, clients }: { onClose: () => void; clien
             </div>
           </div>
 
+          {formError && <p className="text-red-400 text-sm text-center">{formError}</p>}
+
           <div className="flex gap-3 mt-2">
             <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-border text-sm text-muted-soft hover:text-muted hover:border-border-hover transition-all">
               Cancelar
             </button>
-            <button type="submit" className="flex-1 py-2.5 rounded-xl bg-gradient-to-t from-[#1a1a1a] to-[#2a2a2a] border border-border-hover text-sm font-medium text-foreground hover:border-[#3a3a3a] transition-colors">
-              Criar Movimentação
+            <button type="submit" disabled={saving} className="flex-1 py-2.5 rounded-xl bg-gradient-to-t from-[#1a1a1a] to-[#2a2a2a] border border-border-hover text-sm font-medium text-foreground hover:border-[#3a3a3a] transition-colors disabled:opacity-50">
+              {saving ? "Salvando..." : "Criar Movimentação"}
             </button>
           </div>
         </form>

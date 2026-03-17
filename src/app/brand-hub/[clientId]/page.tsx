@@ -12,7 +12,7 @@ export default async function BrandHubClientPage({ params }: { params: Promise<{
     getBrandHub(clientId),
     getClients(),
   ]);
-  if (!client || !brandHub) notFound();
+  if (!client) notFound();
   return (
     <AppShell>
       <BrandDetail client={client} brandHub={brandHub} clients={clients} />

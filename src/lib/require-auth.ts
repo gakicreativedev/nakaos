@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth/server";
 import { redirect } from "next/navigation";
-import { ensureUsuario } from "./queries";
+import { ensureUsuario, getProjetoMembro } from "./queries";
 
 export async function requireAuth() {
   const { data: session } = await auth.getSession();
@@ -33,4 +33,21 @@ export async function requireAdmin() {
     throw new Error("Acesso negado. Apenas administradores podem realizar esta ação.");
   }
   return session;
+}
+
+export async function requireProjetoAccess(projetoId: string) {
+  const session = await requireAuth();
+  if (session.role === "Admin") return session;
+  const member = await getProjetoMembro(projetoId, session.userId);
+  if (!member) {
+    throw new Error("Acesso negado a este projeto.");
+  }
+  return session;
+}
+
+export async function hasAnyProjetoAccess(userId: string, role: string): Promise<boolean> {
+  if (role === "Admin") return true;
+  const { getProjetosByUsuario } = await import("./queries");
+  const projetos = await getProjetosByUsuario(userId);
+  return projetos.length > 0;
 }

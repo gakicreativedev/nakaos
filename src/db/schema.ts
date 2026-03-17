@@ -129,6 +129,97 @@ export const movimentacoes = pgTable("movimentacoes", {
   criadoEm: text("criado_em").notNull(),
 });
 
+/* ── Projetos ── */
+export const projetos = pgTable("projetos", {
+  id: text("id").primaryKey(),
+  nome: text("nome").notNull(),
+  descricao: text("descricao").notNull().default(""),
+  logo: text("logo"),
+  status: text("status").notNull(), // Ativo | Pausado | Concluído | Arquivado
+  criadoEm: text("criado_em").notNull(),
+  atualizadoEm: text("atualizado_em").notNull(),
+});
+
+export const projetoColors = pgTable("projeto_colors", {
+  id: text("id").primaryKey(),
+  projetoId: text("projeto_id").notNull().references(() => projetos.id, { onDelete: "cascade" }),
+  nome: text("nome").notNull(),
+  hex: text("hex").notNull(),
+  rgb: text("rgb").notNull(),
+  cmyk: text("cmyk").notNull(),
+});
+
+export const projetoFonts = pgTable("projeto_fonts", {
+  id: text("id").primaryKey(),
+  projetoId: text("projeto_id").notNull().references(() => projetos.id, { onDelete: "cascade" }),
+  nome: text("nome").notNull(),
+  categoria: text("categoria").notNull(),
+  downloadUrl: text("download_url").notNull(),
+});
+
+export const projetoAssets = pgTable("projeto_assets", {
+  id: text("id").primaryKey(),
+  projetoId: text("projeto_id").notNull().references(() => projetos.id, { onDelete: "cascade" }),
+  nome: text("nome").notNull(),
+  url: text("url").notNull(),
+  tipo: text("tipo").notNull(), // Imagem | Video | Documento | Outro
+  criadoEm: text("criado_em").notNull(),
+});
+
+export const projetoKanbanColumns = pgTable("projeto_kanban_columns", {
+  id: text("id").primaryKey(),
+  titulo: text("titulo").notNull(),
+  projetoId: text("projeto_id").notNull().references(() => projetos.id, { onDelete: "cascade" }),
+  ordem: integer("ordem").notNull(),
+});
+
+export const projetoTasks = pgTable("projeto_tasks", {
+  id: text("id").primaryKey(),
+  titulo: text("titulo").notNull(),
+  descricao: text("descricao").notNull().default(""),
+  responsavel: text("responsavel").notNull(),
+  prazo: text("prazo").notNull(),
+  prioridade: text("prioridade").notNull(),
+  tags: jsonb("tags").$type<string[]>().notNull(),
+  projetoId: text("projeto_id").notNull().references(() => projetos.id, { onDelete: "cascade" }),
+  colunaId: text("coluna_id").notNull().references(() => projetoKanbanColumns.id, { onDelete: "cascade" }),
+  criadoEm: text("criado_em").notNull(),
+});
+
+export const projetoLogos = pgTable("projeto_logos", {
+  id: text("id").primaryKey(),
+  projetoId: text("projeto_id").notNull().references(() => projetos.id, { onDelete: "cascade" }),
+  categoria: text("categoria").notNull(), // Principal | Monocromática | Negativa | Ícone | Horizontal | Vertical
+  url: text("url").notNull().default(""),
+  linkExterno: text("link_externo"),
+});
+
+export const projetoIdentidade = pgTable("projeto_identidade", {
+  projetoId: text("projeto_id").primaryKey().references(() => projetos.id, { onDelete: "cascade" }),
+  nicho: text("nicho").notNull().default(""),
+  publicoAlvo: text("publico_alvo").notNull().default(""),
+  tomDeVoz: text("tom_de_voz").notNull().default(""),
+  slogan: text("slogan").notNull().default(""),
+  concorrentes: text("concorrentes").notNull().default(""),
+  restricoesVisuais: text("restricoes_visuais").notNull().default(""),
+});
+
+export const projetoHistorico = pgTable("projeto_historico", {
+  id: text("id").primaryKey(),
+  projetoId: text("projeto_id").notNull().references(() => projetos.id, { onDelete: "cascade" }),
+  data: text("data").notNull(),
+  usuario: text("usuario").notNull(),
+  descricao: text("descricao").notNull(),
+});
+
+export const projetoMembros = pgTable("projeto_membros", {
+  id: text("id").primaryKey(),
+  projetoId: text("projeto_id").notNull().references(() => projetos.id, { onDelete: "cascade" }),
+  usuarioId: text("usuario_id").notNull().references(() => usuarios.id, { onDelete: "cascade" }),
+  papel: text("papel").notNull(), // Admin | Membro | Visualizador
+  criadoEm: text("criado_em").notNull(),
+});
+
 /* ── Configurações (Usuários) ── */
 export const usuarios = pgTable("usuarios", {
   id: text("id").primaryKey(),

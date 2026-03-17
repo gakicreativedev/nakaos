@@ -13,6 +13,7 @@ import {
   SettingsIcon,
   ChevronLeftIcon,
   BrandHubIcon,
+  ProjectsIcon,
 } from "./icons";
 import { authClient } from "@/lib/auth/client";
 
@@ -22,6 +23,7 @@ const NAV_ITEMS = [
   { id: "tarefas", label: "Tarefas", href: "/tarefas", icon: TasksIcon },
   { id: "brand-hub", label: "Brand Hub", href: "/brand-hub", icon: BrandHubIcon },
   { id: "financas", label: "Finanças", href: "/financas", icon: FinanceIcon },
+  { id: "projetos", label: "Projetos", href: "/projetos", icon: ProjectsIcon },
   { id: "settings", label: "Configurações", href: "/configuracoes", icon: SettingsIcon },
 ];
 

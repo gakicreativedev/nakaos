@@ -2,7 +2,23 @@
 
 import { db } from "@/db";
 import * as schema from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+
+export async function updateClientStatus(clientId: string, status: string) {
+  try {
+    const valid = ["Ativo", "Pausado", "Encerrado", "Onboarding"];
+    if (!valid.includes(status)) return { error: "Status inválido." };
+
+    await db.update(schema.clients).set({ status }).where(eq(schema.clients.id, clientId));
+    revalidatePath(`/clientes/${clientId}`);
+    revalidatePath("/clientes");
+    return { success: true };
+  } catch (error) {
+    console.error("[updateClientStatus] Error:", error);
+    return { error: "Falha ao atualizar status." };
+  }
+}
 
 export async function createClient(formData: FormData) {
   try {

@@ -15,21 +15,70 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]["id"];
 
-function StatusBadge({ status }: { status: string }) {
-  const colors: Record<string, { bg: string; text: string }> = {
-    Ativo: { bg: "rgba(34,197,94,0.15)", text: "#4ade80" },
-    Onboarding: { bg: "rgba(168,85,247,0.15)", text: "#c084fc" },
-    Pausado: { bg: "rgba(234,179,8,0.15)", text: "#facc15" },
-    Encerrado: { bg: "rgba(107,114,128,0.15)", text: "#9ca3af" },
+const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
+  Ativo: { bg: "rgba(34,197,94,0.15)", text: "#4ade80" },
+  Onboarding: { bg: "rgba(168,85,247,0.15)", text: "#c084fc" },
+  Pausado: { bg: "rgba(234,179,8,0.15)", text: "#facc15" },
+  Encerrado: { bg: "rgba(107,114,128,0.15)", text: "#9ca3af" },
+};
+
+const STATUS_OPTIONS = ["Ativo", "Onboarding", "Pausado", "Encerrado"];
+
+function StatusSelector({ clientId, status, canEdit }: { clientId: string; status: string; canEdit: boolean }) {
+  const [open, setOpen] = useState(false);
+  const [current, setCurrent] = useState(status);
+  const [saving, setSaving] = useState(false);
+  const c = STATUS_COLORS[current] ?? { bg: "rgba(107,114,128,0.15)", text: "#9ca3af" };
+
+  const handleChange = async (newStatus: string) => {
+    if (newStatus === current) { setOpen(false); return; }
+    setSaving(true);
+    setOpen(false);
+    setCurrent(newStatus);
+    const { updateClientStatus } = await import("@/actions/clientes");
+    await updateClientStatus(clientId, newStatus);
+    setSaving(false);
   };
-  const c = colors[status] ?? { bg: "rgba(107,114,128,0.15)", text: "#9ca3af" };
+
+  if (!canEdit) {
+    return (
+      <span className="px-3 py-1 rounded-lg text-xs font-medium tracking-wide" style={{ background: c.bg, color: c.text }}>
+        {current}
+      </span>
+    );
+  }
+
   return (
-    <span
-      className="px-3 py-1 rounded-lg text-xs font-medium tracking-wide"
-      style={{ background: c.bg, color: c.text }}
-    >
-      {status}
-    </span>
+    <div className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        disabled={saving}
+        className="px-3 py-1 rounded-lg text-xs font-medium tracking-wide cursor-pointer hover:opacity-80 transition-opacity disabled:opacity-50"
+        style={{ background: c.bg, color: c.text }}
+      >
+        {saving ? "..." : current}
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute top-full left-0 mt-1 z-50 bg-[#1a1a1a] border border-border rounded-xl overflow-hidden shadow-xl min-w-[140px]">
+            {STATUS_OPTIONS.map((s) => {
+              const sc = STATUS_COLORS[s] ?? { bg: "rgba(107,114,128,0.15)", text: "#9ca3af" };
+              return (
+                <button
+                  key={s}
+                  onClick={() => handleChange(s)}
+                  className={`w-full px-3 py-2 text-left text-xs font-medium flex items-center gap-2 hover:bg-white/[0.05] transition-colors ${s === current ? "bg-white/[0.03]" : ""}`}
+                >
+                  <span className="w-2 h-2 rounded-full shrink-0" style={{ background: sc.text }} />
+                  {s}
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </div>
   );
 }
 
@@ -38,9 +87,10 @@ interface ClienteDetailProps {
   brandHub: BrandHubData | null;
   tasks: Task[];
   movimentacoes: Movimentacao[];
+  userRole?: string;
 }
 
-export default function ClienteDetail({ client, brandHub, tasks, movimentacoes }: ClienteDetailProps) {
+export default function ClienteDetail({ client, brandHub, tasks, movimentacoes, userRole }: ClienteDetailProps) {
   const [activeTab, setActiveTab] = useState<TabId>("geral");
 
   const clientTasks = tasks.filter((t) => t.clientId === client.id);
@@ -61,7 +111,7 @@ export default function ClienteDetail({ client, brandHub, tasks, movimentacoes }
             <h1 className="text-2xl font-semibold text-gradient tracking-tight truncate">
               {client.nome}
             </h1>
-            <StatusBadge status={client.status} />
+            <StatusSelector clientId={client.id} status={client.status} canEdit={userRole === "Admin" || userRole === "Editor"} />
           </div>
           <p className="text-muted text-sm mt-0.5">{client.responsavel} · {client.email}</p>
         </div>

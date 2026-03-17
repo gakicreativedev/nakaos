@@ -189,6 +189,134 @@ export async function getUsuarioByAuthId(authUserId: string) {
   }
 }
 
+/* ── Projetos ── */
+export async function getProjetos() {
+  try {
+    return await db.select().from(schema.projetos);
+  } catch (error) {
+    console.error("[getProjetos] Database error:", error);
+    return [];
+  }
+}
+
+export async function getProjetoById(id: string) {
+  try {
+    const [projeto] = await db.select().from(schema.projetos).where(eq(schema.projetos.id, id)).limit(1);
+    return projeto ?? null;
+  } catch (error) {
+    console.error("[getProjetoById] Database error:", error);
+    return null;
+  }
+}
+
+export async function getProjetosByUsuario(usuarioId: string) {
+  try {
+    const memberships = await db.select().from(schema.projetoMembros).where(eq(schema.projetoMembros.usuarioId, usuarioId));
+    if (memberships.length === 0) return [];
+    const projetoIds = memberships.map((m) => m.projetoId);
+    const all = await db.select().from(schema.projetos);
+    return all.filter((p) => projetoIds.includes(p.id));
+  } catch (error) {
+    console.error("[getProjetosByUsuario] Database error:", error);
+    return [];
+  }
+}
+
+export async function getProjetoMembros(projetoId: string) {
+  try {
+    return await db.select().from(schema.projetoMembros).where(eq(schema.projetoMembros.projetoId, projetoId));
+  } catch (error) {
+    console.error("[getProjetoMembros] Database error:", error);
+    return [];
+  }
+}
+
+export async function getProjetoMembro(projetoId: string, usuarioId: string) {
+  try {
+    const [member] = await db.select().from(schema.projetoMembros)
+      .where(eq(schema.projetoMembros.projetoId, projetoId)).limit(100);
+    const found = (await db.select().from(schema.projetoMembros))
+      .find((m) => m.projetoId === projetoId && m.usuarioId === usuarioId);
+    return found ?? null;
+  } catch (error) {
+    console.error("[getProjetoMembro] Database error:", error);
+    return null;
+  }
+}
+
+export async function getProjetoLogos(projetoId: string) {
+  try {
+    return await db.select().from(schema.projetoLogos).where(eq(schema.projetoLogos.projetoId, projetoId));
+  } catch (error) {
+    console.error("[getProjetoLogos] Database error:", error);
+    return [];
+  }
+}
+
+export async function getProjetoIdentidade(projetoId: string) {
+  try {
+    const [ident] = await db.select().from(schema.projetoIdentidade).where(eq(schema.projetoIdentidade.projetoId, projetoId)).limit(1);
+    return ident ?? null;
+  } catch (error) {
+    console.error("[getProjetoIdentidade] Database error:", error);
+    return null;
+  }
+}
+
+export async function getProjetoHistorico(projetoId: string) {
+  try {
+    return await db.select().from(schema.projetoHistorico).where(eq(schema.projetoHistorico.projetoId, projetoId));
+  } catch (error) {
+    console.error("[getProjetoHistorico] Database error:", error);
+    return [];
+  }
+}
+
+export async function getProjetoColors(projetoId: string) {
+  try {
+    return await db.select().from(schema.projetoColors).where(eq(schema.projetoColors.projetoId, projetoId));
+  } catch (error) {
+    console.error("[getProjetoColors] Database error:", error);
+    return [];
+  }
+}
+
+export async function getProjetoFonts(projetoId: string) {
+  try {
+    return await db.select().from(schema.projetoFonts).where(eq(schema.projetoFonts.projetoId, projetoId));
+  } catch (error) {
+    console.error("[getProjetoFonts] Database error:", error);
+    return [];
+  }
+}
+
+export async function getProjetoAssets(projetoId: string) {
+  try {
+    return await db.select().from(schema.projetoAssets).where(eq(schema.projetoAssets.projetoId, projetoId));
+  } catch (error) {
+    console.error("[getProjetoAssets] Database error:", error);
+    return [];
+  }
+}
+
+export async function getProjetoKanbanColumns(projetoId: string) {
+  try {
+    return await db.select().from(schema.projetoKanbanColumns).where(eq(schema.projetoKanbanColumns.projetoId, projetoId));
+  } catch (error) {
+    console.error("[getProjetoKanbanColumns] Database error:", error);
+    return [];
+  }
+}
+
+export async function getProjetoTasks(projetoId: string) {
+  try {
+    return await db.select().from(schema.projetoTasks).where(eq(schema.projetoTasks.projetoId, projetoId));
+  } catch (error) {
+    console.error("[getProjetoTasks] Database error:", error);
+    return [];
+  }
+}
+
 /**
  * Ensures a usuario record exists for the given Neon Auth user.
  * On first login, creates with default role "Visualizador".
