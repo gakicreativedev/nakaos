@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Magnifier, AltArrowRight, CloseCircle } from "@solar-icons/react";
+import { useTransition } from "react";
+import { createClient } from "@/actions/clientes";
 
 import type { Client, ClientStatus } from "@/lib/types";
 
@@ -220,49 +222,62 @@ export default function ClientesList({ clients }: ClientesListProps) {
 
 /* ── New Client Modal ── */
 function NewClientModal({ onClose }: { onClose: () => void }) {
+  const [isPending, startTransition] = useTransition();
+
+  const handleCreate = async (formData: FormData) => {
+    startTransition(async () => {
+      const res = await createClient(formData);
+      if (res?.error) {
+        alert(res.error);
+      } else {
+        onClose();
+      }
+    });
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="relative w-full max-w-lg bg-[#1a1a1a] border border-border rounded-2xl p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-lg font-semibold text-gradient">Novo Cliente</h2>
-          <button onClick={onClose} className="text-muted hover:text-foreground transition-colors p-1">
+          <button onClick={onClose} className="text-muted hover:text-foreground transition-colors p-1" disabled={isPending}>
             <CloseCircle size={18} />
           </button>
         </div>
 
-        <form className="flex flex-col gap-4" onSubmit={(e) => { e.preventDefault(); onClose(); }}>
-          <FormField label="Nome da empresa" placeholder="Ex: Studio Zen" required />
-          <FormField label="CNPJ" placeholder="00.000.000/0000-00" />
+        <form action={handleCreate} className="flex flex-col gap-4">
+          <FormField name="nome" label="Nome da empresa" placeholder="Ex: Studio Zen" required />
+          <FormField name="cnpj" label="CNPJ" placeholder="00.000.000/0000-00" />
           <div className="grid grid-cols-2 gap-3">
-            <FormField label="Responsável" placeholder="Nome do contato" required />
-            <FormField label="Telefone" placeholder="(00) 00000-0000" />
+            <FormField name="responsavel" label="Responsável" placeholder="Nome do contato" required />
+            <FormField name="telefone" label="Telefone" placeholder="(00) 00000-0000" />
           </div>
-          <FormField label="E-mail" placeholder="contato@empresa.com.br" type="email" />
-          <FormField label="Endereço" placeholder="Rua, número - Cidade, UF" />
+          <FormField name="email" label="E-mail" placeholder="contato@empresa.com.br" type="email" />
+          <FormField name="endereco" label="Endereço" placeholder="Rua, número - Cidade, UF" />
 
           <div className="border-t border-border pt-4 mt-2">
             <p className="text-xs font-medium text-muted uppercase tracking-wider mb-3">Redes Sociais</p>
             <div className="grid grid-cols-2 gap-3">
-              <FormField label="Instagram" placeholder="@usuario" />
-              <FormField label="Facebook" placeholder="pagina" />
-              <FormField label="LinkedIn" placeholder="empresa" />
-              <FormField label="TikTok" placeholder="@usuario" />
+              <FormField name="instagram" label="Instagram" placeholder="@usuario" />
+              <FormField name="facebook" label="Facebook" placeholder="pagina" />
+              <FormField name="linkedin" label="LinkedIn" placeholder="empresa" />
+              <FormField name="tiktok" label="TikTok" placeholder="@usuario" />
             </div>
           </div>
 
           <div className="border-t border-border pt-4 mt-2">
             <p className="text-xs font-medium text-muted uppercase tracking-wider mb-3">Contrato</p>
             <div className="grid grid-cols-2 gap-3">
-              <FormField label="Valor mensal" placeholder="R$ 0,00" />
-              <FormField label="Data de início" type="date" />
+              <FormField name="valorMensal" label="Valor mensal" placeholder="R$ 0,00" />
+              <FormField name="dataInicio" label="Data de início" type="date" />
             </div>
             <div className="mt-3">
               <label className="text-xs font-medium text-muted block mb-1.5">Serviços contratados</label>
               <div className="flex flex-wrap gap-2">
                 {["Gestão de redes sociais", "Tráfego pago", "Criação de conteúdo"].map((s) => (
                   <label key={s} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#141414] border border-border text-xs text-[#c8c8c8] cursor-pointer hover:border-border-hover transition-colors">
-                    <input type="checkbox" className="accent-info rounded" />
+                    <input type="checkbox" name="servicos" value={s} className="accent-info rounded" />
                     {s}
                   </label>
                 ))}
@@ -273,6 +288,7 @@ function NewClientModal({ onClose }: { onClose: () => void }) {
           <div className="mt-2">
             <label className="text-xs font-medium text-muted block mb-1.5">Observações</label>
             <textarea
+              name="observacoes"
               placeholder="Notas internas sobre o cliente..."
               rows={3}
               className="w-full px-3.5 py-2.5 rounded-xl bg-[#141414] border border-border text-sm text-foreground placeholder:text-muted-soft focus:outline-none focus:border-border-hover transition-colors resize-none"
@@ -280,11 +296,11 @@ function NewClientModal({ onClose }: { onClose: () => void }) {
           </div>
 
           <div className="flex gap-3 mt-2">
-            <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-border text-sm text-muted-soft hover:text-muted hover:border-border-hover transition-all">
+            <button type="button" onClick={onClose} disabled={isPending} className="flex-1 py-2.5 rounded-xl border border-border text-sm text-muted-soft hover:text-muted hover:border-border-hover transition-all disabled:opacity-50">
               Cancelar
             </button>
-            <button type="submit" className="flex-1 py-2.5 rounded-xl bg-gradient-to-t from-[#1a1a1a] to-[#2a2a2a] border border-border-hover text-sm font-medium text-foreground hover:border-[#3a3a3a] transition-colors">
-              Criar Cliente
+            <button type="submit" disabled={isPending} className="flex-1 flex items-center justify-center py-2.5 rounded-xl bg-gradient-to-t from-[#1a1a1a] to-[#2a2a2a] border border-border-hover text-sm font-medium text-foreground hover:border-[#3a3a3a] transition-colors disabled:opacity-50">
+              {isPending ? "Criando..." : "Criar Cliente"}
             </button>
           </div>
         </form>
@@ -294,11 +310,13 @@ function NewClientModal({ onClose }: { onClose: () => void }) {
 }
 
 function FormField({
+  name,
   label,
   placeholder,
   type = "text",
   required = false,
 }: {
+  name: string;
   label: string;
   placeholder?: string;
   type?: string;
@@ -311,6 +329,7 @@ function FormField({
         {required && <span className="text-urgent ml-0.5">*</span>}
       </label>
       <input
+        name={name}
         type={type}
         placeholder={placeholder}
         required={required}
