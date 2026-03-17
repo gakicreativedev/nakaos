@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { authClient } from "@/lib/auth/client";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function AuthPage() {
   const router = useRouter();
@@ -46,10 +47,15 @@ export default function AuthPage() {
     <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#0a0a0a] text-zinc-300 font-sans selection:bg-zinc-800">
       
       {/* Logo */}
-      <div className="mb-10 text-center">
-        <h1 className="text-6xl text-zinc-200 tracking-tight" style={{ fontFamily: "Georgia, serif", fontStyle: "italic" }}>
-          Naka
-        </h1>
+      <div className="mb-10 text-center flex justify-center">
+        <Image 
+          src="/logo-naka.svg" 
+          alt="Naka Logo" 
+          width={180} 
+          height={60} 
+          priority
+          className="object-contain drop-shadow-md"
+        />
       </div>
 
       {/* Card Principal */}
