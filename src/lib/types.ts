@@ -126,6 +126,7 @@ export interface Task {
   ordem: number;
   recorrente: boolean | null;
   frequencia: string | null;
+  arquivada: boolean | null;
   criadoEm: string;
   etapas: Etapa[];
   comentarios: TaskComment[];

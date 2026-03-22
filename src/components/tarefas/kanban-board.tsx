@@ -1,13 +1,43 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Refresh, ChatRoundDots, AltArrowLeft, CloseCircle, AddCircle, Pen, TrashBinMinimalistic, MenuDots, Gallery } from "@solar-icons/react";
+import { Refresh, ChatRoundDots, AltArrowLeft, CloseCircle, AddCircle, Pen, TrashBinMinimalistic, MenuDots, Gallery, ArchiveMinimalistic, Restart } from "@solar-icons/react";
 import { MOCK_TAGS, type Client, type Task, type TaskPriority, type KanbanColumn } from "@/lib/types";
 import TaskModal from "./task-modal";
 
 const PRI_BG: Record<string, string> = { Urgente: "bg-error", Alta: "bg-warning", Média: "bg-secondary", Baixa: "bg-success" };
 const PRI_TEXT: Record<string, string> = { Urgente: "text-error", Alta: "text-warning", Média: "text-info", Baixa: "text-success" };
+
+/* ── Drag-to-scroll hook ── */
+function useDragScroll() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    let isDown = false, startX = 0, scrollLeft = 0;
+    const onDown = (e: MouseEvent) => {
+      // Only trigger on background/empty space, not on cards or buttons
+      if ((e.target as HTMLElement).closest("[draggable], button, input, select, a")) return;
+      isDown = true;
+      startX = e.pageX - el.offsetLeft;
+      scrollLeft = el.scrollLeft;
+      el.style.cursor = "grabbing";
+      el.style.userSelect = "none";
+    };
+    const onUp = () => { isDown = false; el.style.cursor = ""; el.style.userSelect = ""; };
+    const onMove = (e: MouseEvent) => {
+      if (!isDown) return;
+      e.preventDefault();
+      el.scrollLeft = scrollLeft - (e.pageX - el.offsetLeft - startX);
+    };
+    el.addEventListener("mousedown", onDown);
+    window.addEventListener("mouseup", onUp);
+    window.addEventListener("mousemove", onMove);
+    return () => { el.removeEventListener("mousedown", onDown); window.removeEventListener("mouseup", onUp); window.removeEventListener("mousemove", onMove); };
+  }, []);
+  return ref;
+}
 
 /* ── Task Card (enhanced) ── */
 function TaskCard({ task, onClick, onDragStart }: { task: Task; onClick: () => void; onDragStart: (e: React.DragEvent) => void }) {
@@ -176,11 +206,13 @@ interface KanbanBoardProps {
   client: Client;
   tasks: Task[];
   columns: KanbanColumn[];
+  archivedTasks?: Task[];
   onBack?: () => void;
 }
 
-export default function KanbanBoard({ client, tasks: tasksProp, columns, onBack }: KanbanBoardProps) {
+export default function KanbanBoard({ client, tasks: tasksProp, columns, archivedTasks = [], onBack }: KanbanBoardProps) {
   const router = useRouter();
+  const dragScrollRef = useDragScroll();
   const clientId = client.id;
   const services = client.servicosContratados ?? [];
   const [selectedService, setSelectedService] = useState(services[0] || "");
@@ -190,6 +222,8 @@ export default function KanbanBoard({ client, tasks: tasksProp, columns, onBack 
   const [filterTag, setFilterTag] = useState<string | "Todas">("Todas");
   const [showNewTask, setShowNewTask] = useState(false);
   const [initializingService, setInitializingService] = useState(false);
+  const isArchivedView = selectedService === "__arquivadas__";
+  const clientArchived = archivedTasks.filter((t) => t.clientId === clientId);
 
   // Ensure columns exist for selected service
   const handleServiceChange = async (svc: string) => {
@@ -283,41 +317,82 @@ export default function KanbanBoard({ client, tasks: tasksProp, columns, onBack 
               Geral <span className="ml-1.5 text-[10px] opacity-60">{tasks.filter((t) => t.clientId === clientId && !t.servico).length}</span>
             </button>
           )}
+          <button onClick={() => setSelectedService("__arquivadas__")}
+            className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all whitespace-nowrap flex items-center gap-1.5 ${isArchivedView ? "bg-warning/15 text-warning" : "text-on-surface-variant hover:bg-surface-container-low"}`}>
+            <ArchiveMinimalistic size={12} /> Arquivadas <span className="ml-0.5 text-[10px] opacity-60">{clientArchived.length}</span>
+          </button>
         </div>
       )}
 
       {initializingService && <p className="text-xs text-on-surface-variant animate-pulse">Criando colunas padrão...</p>}
 
-      {/* Filters */}
-      <div className="flex gap-3 flex-wrap">
-        <div className="flex gap-1">
-          {(["Todas", "Urgente", "Alta", "Média", "Baixa"] as const).map((p) => (
-            <button key={p} onClick={() => setFilterPriority(p)}
-              className={`px-2.5 py-1.5 text-[11px] font-medium transition-all flex items-center gap-1.5 rounded-full ${filterPriority === p ? "bg-surface-container-low text-on-surface" : "text-on-surface-variant"}`}>
-              {p !== "Todas" && <span className={`w-1.5 h-1.5 rounded-full ${PRI_BG[p] ?? "bg-muted"}`} />}{p}
-            </button>
-          ))}
-        </div>
-        <select value={filterTag} onChange={(e) => setFilterTag(e.target.value)}
-          className="px-3 py-1.5 bg-surface-container-low border-none rounded-full text-[11px] text-on-surface-variant focus:ring-1 focus:ring-primary focus:outline-none">
-          <option value="Todas">Todas as tags</option>
-          {MOCK_TAGS.map((tag) => <option key={tag} value={tag}>{tag}</option>)}
-        </select>
-      </div>
+      {isArchivedView ? (
+        /* ── Archived Tasks List ── */
+        <ArchivedTasksList tasks={clientArchived} client={client} />
+      ) : (
+        <>
+          {/* Filters */}
+          <div className="flex gap-3 flex-wrap">
+            <div className="flex gap-1">
+              {(["Todas", "Urgente", "Alta", "Média", "Baixa"] as const).map((p) => (
+                <button key={p} onClick={() => setFilterPriority(p)}
+                  className={`px-2.5 py-1.5 text-[11px] font-medium transition-all flex items-center gap-1.5 rounded-full ${filterPriority === p ? "bg-surface-container-low text-on-surface" : "text-on-surface-variant"}`}>
+                  {p !== "Todas" && <span className={`w-1.5 h-1.5 rounded-full ${PRI_BG[p] ?? "bg-muted"}`} />}{p}
+                </button>
+              ))}
+            </div>
+            <select value={filterTag} onChange={(e) => setFilterTag(e.target.value)}
+              className="px-3 py-1.5 bg-surface-container-low border-none rounded-full text-[11px] text-on-surface-variant focus:ring-1 focus:ring-primary focus:outline-none">
+              <option value="Todas">Todas as tags</option>
+              {MOCK_TAGS.map((tag) => <option key={tag} value={tag}>{tag}</option>)}
+            </select>
+          </div>
 
-      {/* Kanban columns */}
-      <div className="flex gap-4 overflow-x-auto flex-1 min-h-0 pb-4">
-        {activeColumns.map((col) => (
-          <Column key={col.id} column={col}
-            tasks={filteredTasks.filter((t) => t.colunaId === col.id)}
-            onTaskClick={setSelectedTask} onDrop={handleDrop} onReorder={handleReorder} />
-        ))}
-        <AddColumnButton clientId={clientId} servico={isLegacyView ? undefined : selectedService} />
-      </div>
+          {/* Kanban columns */}
+          <div ref={dragScrollRef} className="flex gap-4 overflow-x-auto flex-1 min-h-0 pb-4 cursor-grab">
+            {activeColumns.map((col) => (
+              <Column key={col.id} column={col}
+                tasks={filteredTasks.filter((t) => t.colunaId === col.id)}
+                onTaskClick={setSelectedTask} onDrop={handleDrop} onReorder={handleReorder} />
+            ))}
+            <AddColumnButton clientId={clientId} servico={isLegacyView ? undefined : selectedService} />
+          </div>
+        </>
+      )}
 
       {selectedTask && <TaskModal task={selectedTask} client={client} onClose={() => setSelectedTask(null)} onUpdate={handleTaskUpdate} />}
-      {showNewTask && <NewTaskModal clientId={clientId} servico={isLegacyView ? null : selectedService} columns={activeColumns} onClose={() => setShowNewTask(false)} />}
+      {showNewTask && !isArchivedView && <NewTaskModal clientId={clientId} servico={isLegacyView ? null : selectedService} columns={activeColumns} onClose={() => setShowNewTask(false)} />}
     </>
+  );
+}
+
+/* ── Archived Tasks List ── */
+function ArchivedTasksList({ tasks, client }: { tasks: Task[]; client: Client }) {
+  const router = useRouter();
+
+  const handleUnarchive = async (taskId: string) => {
+    const { unarchiveTask } = await import("@/actions/tarefas");
+    await unarchiveTask(taskId);
+    router.refresh();
+  };
+
+  if (tasks.length === 0) return <p className="text-sm text-outline text-center py-12">Nenhuma tarefa arquivada</p>;
+
+  return (
+    <div className="bg-surface-container-low rounded-xl overflow-hidden">
+      {tasks.map((t) => (
+        <div key={t.id} className="flex items-center px-5 py-4 gap-3 hover:bg-surface-container transition-colors group border-b border-outline-variant/5 last:border-b-0">
+          <span className={`w-2 h-2 rounded-full ${PRI_BG[t.prioridade] ?? "bg-outline"} shrink-0 opacity-50`} />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-on-surface-variant line-through truncate">{t.titulo}</p>
+            <p className="text-[10px] text-outline mt-0.5">{t.servico || "Geral"} · {t.responsavel} · {new Date(t.prazo).toLocaleDateString("pt-BR")}</p>
+          </div>
+          <button onClick={() => handleUnarchive(t.id)} className="opacity-0 group-hover:opacity-100 flex items-center gap-1.5 text-xs text-primary hover:bg-primary/10 px-3 py-1.5 rounded-full transition-all" title="Desarquivar">
+            <Restart size={12} /> Restaurar
+          </button>
+        </div>
+      ))}
+    </div>
   );
 }
 

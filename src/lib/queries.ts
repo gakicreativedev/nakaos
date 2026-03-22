@@ -99,11 +99,23 @@ export async function getKanbanColumns(clientId?: string) {
 export async function getTasks(clientId?: string) {
   try {
     if (clientId) {
-      return await db.select().from(schema.tasks).where(eq(schema.tasks.clientId, clientId));
+      return await db.select().from(schema.tasks).where(and(eq(schema.tasks.clientId, clientId), eq(schema.tasks.arquivada, false)));
     }
-    return await db.select().from(schema.tasks);
+    return await db.select().from(schema.tasks).where(eq(schema.tasks.arquivada, false));
   } catch (error) {
     console.error("[getTasks] Database error:", error);
+    return [];
+  }
+}
+
+export async function getArchivedTasks(clientId?: string) {
+  try {
+    if (clientId) {
+      return await db.select().from(schema.tasks).where(and(eq(schema.tasks.clientId, clientId), eq(schema.tasks.arquivada, true)));
+    }
+    return await db.select().from(schema.tasks).where(eq(schema.tasks.arquivada, true));
+  } catch (error) {
+    console.error("[getArchivedTasks] Database error:", error);
     return [];
   }
 }
@@ -126,10 +138,10 @@ export async function getTaskWithDetails(taskId: string) {
   }
 }
 
-export async function getAllTasksWithDetails() {
+export async function getAllTasksWithDetails(includeArchived = false) {
   try {
     const [allTasks, allEtapas, allComments, allAnexos] = await Promise.all([
-      db.select().from(schema.tasks),
+      includeArchived ? db.select().from(schema.tasks) : db.select().from(schema.tasks).where(eq(schema.tasks.arquivada, false)),
       db.select().from(schema.taskEtapas),
       db.select().from(schema.taskComments),
       db.select().from(schema.taskAnexos),
@@ -151,10 +163,39 @@ export async function getAllTasksWithDetails() {
   }
 }
 
+export async function getArchivedTasksWithDetails(clientId?: string) {
+  try {
+    const condition = clientId
+      ? and(eq(schema.tasks.arquivada, true), eq(schema.tasks.clientId, clientId))
+      : eq(schema.tasks.arquivada, true);
+    const [archivedTasks, allEtapas, allComments, allAnexos] = await Promise.all([
+      db.select().from(schema.tasks).where(condition),
+      db.select().from(schema.taskEtapas),
+      db.select().from(schema.taskComments),
+      db.select().from(schema.taskAnexos),
+    ]);
+
+    const taskIds = new Set(archivedTasks.map((t) => t.id));
+    const etapasMap = groupBy(allEtapas.filter((e) => taskIds.has(e.taskId)), (e) => e.taskId);
+    const commentsMap = groupBy(allComments.filter((c) => taskIds.has(c.taskId)), (c) => c.taskId);
+    const anexosMap = groupBy(allAnexos.filter((a) => taskIds.has(a.taskId)), (a) => a.taskId);
+
+    return archivedTasks.map((task) => ({
+      ...task,
+      etapas: etapasMap.get(task.id) ?? [],
+      comentarios: commentsMap.get(task.id) ?? [],
+      anexos: anexosMap.get(task.id) ?? [],
+    }));
+  } catch (error) {
+    console.error("[getArchivedTasksWithDetails] Database error:", error);
+    return [];
+  }
+}
+
 export async function getTasksWithDetailsByClient(clientId: string) {
   try {
     const [clientTasks, allEtapas, allComments, allAnexos] = await Promise.all([
-      db.select().from(schema.tasks).where(eq(schema.tasks.clientId, clientId)),
+      db.select().from(schema.tasks).where(and(eq(schema.tasks.clientId, clientId), eq(schema.tasks.arquivada, false))),
       db.select().from(schema.taskEtapas),
       db.select().from(schema.taskComments),
       db.select().from(schema.taskAnexos),

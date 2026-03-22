@@ -6,11 +6,10 @@ import type { Client, Task, KanbanColumn, TaskPriority } from "@/lib/types";
 import KanbanBoard from "./kanban-board";
 
 const PRI_BG: Record<string, string> = { Urgente: "bg-error", Alta: "bg-warning", Média: "bg-secondary", Baixa: "bg-success" };
-const PRI_TEXT: Record<string, string> = { Urgente: "text-error", Alta: "text-warning", Média: "text-secondary", Baixa: "text-success" };
 
-interface Props { clients: Client[]; tasks: Task[]; columns: KanbanColumn[] }
+interface Props { clients: Client[]; tasks: Task[]; columns: KanbanColumn[]; archivedTasks: Task[] }
 
-export default function TarefasOverview({ clients, tasks, columns }: Props) {
+export default function TarefasOverview({ clients, tasks, columns, archivedTasks }: Props) {
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [expandedClientId, setExpandedClientId] = useState<string | null>(null);
 
@@ -19,13 +18,11 @@ export default function TarefasOverview({ clients, tasks, columns }: Props) {
     if (selectedClient) {
       const clientTasks = tasks.filter((t) => t.clientId === selectedClientId);
       const clientColumns = columns.filter((c) => c.clientId === selectedClientId);
-      return <KanbanBoard client={selectedClient} tasks={clientTasks} columns={clientColumns} onBack={() => setSelectedClientId(null)} />;
+      return <KanbanBoard client={selectedClient} tasks={clientTasks} columns={clientColumns} archivedTasks={archivedTasks} onBack={() => setSelectedClientId(null)} />;
     }
   }
 
   const activeClients = clients.filter((c) => c.status === "Ativo" || c.status === "Onboarding");
-
-  // Global stats
   const totalTasks = tasks.length;
   const urgentTasks = tasks.filter((t) => t.prioridade === "Urgente").length;
   const overdueTasks = tasks.filter((t) => new Date(t.prazo) < new Date()).length;
@@ -37,7 +34,6 @@ export default function TarefasOverview({ clients, tasks, columns }: Props) {
         <p className="text-on-surface-variant text-xs sm:text-sm mt-1">Selecione um cliente para visualizar o quadro de tarefas.</p>
       </div>
 
-      {/* Global stats */}
       <div className="grid grid-cols-3 gap-3">
         <div className="bg-surface-container-low rounded-xl p-4">
           <p className="text-[10px] text-on-surface-variant uppercase tracking-widest">Total</p>
@@ -53,11 +49,9 @@ export default function TarefasOverview({ clients, tasks, columns }: Props) {
         </div>
       </div>
 
-      {/* Client cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         {activeClients.map((client) => {
           const ct = tasks.filter((t) => t.clientId === client.id);
-          const cc = columns.filter((c) => c.clientId === client.id);
           const byPriority = ct.reduce((a, t) => { a[t.prioridade] = (a[t.prioridade] || 0) + 1; return a; }, {} as Record<string, number>);
           const overdue = ct.filter((t) => new Date(t.prazo) < new Date()).length;
           const totalEtapas = ct.reduce((s, t) => s + t.etapas.length, 0);
@@ -67,7 +61,6 @@ export default function TarefasOverview({ clients, tasks, columns }: Props) {
 
           return (
             <div key={client.id} className="bg-surface-container-low rounded-xl transition-all duration-300 group">
-              {/* Card header - clickable to expand */}
               <button onClick={() => setExpandedClientId(expanded ? null : client.id)} className="w-full p-6 text-left">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3.5">
@@ -82,8 +75,6 @@ export default function TarefasOverview({ clients, tasks, columns }: Props) {
                     <div className={`w-8 h-8 rounded-xl bg-surface-container flex items-center justify-center text-on-surface-variant transition-transform ${expanded ? "rotate-90" : ""}`}><AltArrowRight size={16} /></div>
                   </div>
                 </div>
-
-                {/* Progress */}
                 {totalEtapas > 0 && (
                   <div className="mb-3">
                     <div className="flex items-center justify-between mb-1">
@@ -93,8 +84,6 @@ export default function TarefasOverview({ clients, tasks, columns }: Props) {
                     <div className="w-full h-1 rounded-full bg-surface-container overflow-hidden"><div className="h-full rounded-full bg-secondary transition-all" style={{ width: `${pct}%` }} /></div>
                   </div>
                 )}
-
-                {/* Priority indicators */}
                 <div className="flex items-center gap-2.5">
                   {(["Urgente", "Alta", "Média", "Baixa"] as TaskPriority[]).map((p) => {
                     const c = byPriority[p] || 0;
@@ -103,11 +92,8 @@ export default function TarefasOverview({ clients, tasks, columns }: Props) {
                   })}
                 </div>
               </button>
-
-              {/* Expanded: task list + kanban button */}
               {expanded && (
                 <div className="px-6 pb-6 border-t border-outline-variant/10">
-                  {/* Service breakdown */}
                   {client.servicosContratados.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mt-4 mb-3">
                       {client.servicosContratados.map((svc) => {
@@ -116,8 +102,6 @@ export default function TarefasOverview({ clients, tasks, columns }: Props) {
                       })}
                     </div>
                   )}
-
-                  {/* Task list */}
                   <div className="bg-surface-container-lowest rounded-xl overflow-hidden mb-3 max-h-[250px] overflow-y-auto">
                     {ct.length === 0 && <p className="text-xs text-outline text-center py-6">Nenhuma tarefa</p>}
                     {ct.slice(0, 10).map((t) => (
@@ -132,7 +116,6 @@ export default function TarefasOverview({ clients, tasks, columns }: Props) {
                     ))}
                     {ct.length > 10 && <p className="text-[10px] text-outline text-center py-2">+{ct.length - 10} tarefas</p>}
                   </div>
-
                   <button onClick={() => setSelectedClientId(client.id)} className="w-full py-2.5 rounded-full bg-primary text-on-primary text-sm font-medium hover:opacity-90 transition-opacity">
                     Abrir Quadro Kanban
                   </button>

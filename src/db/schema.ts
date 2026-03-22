@@ -96,6 +96,7 @@ export const tasks = pgTable("tasks", {
   ordem: integer("ordem").notNull().default(0),
   recorrente: boolean("recorrente").notNull().default(false),
   frequencia: text("frequencia"),
+  arquivada: boolean("arquivada").notNull().default(false),
   criadoEm: text("criado_em").notNull(),
 });
 

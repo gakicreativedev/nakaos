@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CloseCircle, CheckCircle, Pen, TrashBinMinimalistic, AddCircle, Gallery, ChatRoundDots } from "@solar-icons/react";
+import { CloseCircle, CheckCircle, Pen, TrashBinMinimalistic, AddCircle, Gallery, ChatRoundDots, ArchiveMinimalistic } from "@solar-icons/react";
 import type { Client, Task, Etapa, TaskComment, TaskAnexo } from "@/lib/types";
 import ImageAnnotator from "./image-annotator";
 
@@ -38,6 +38,7 @@ export default function TaskModal({ task, client, onClose, onDelete, onUpdate }:
   const [newAnexoUrl, setNewAnexoUrl] = useState("");
   const [newAnexoNome, setNewAnexoNome] = useState("");
   const [annotatorAnexo, setAnnotatorAnexo] = useState<TaskAnexo | null>(null);
+  const [archiving, setArchiving] = useState(false);
 
   // client is now passed directly as prop
   const etapasDone = localEtapas.filter((e) => e.concluida).length;
@@ -56,6 +57,15 @@ export default function TaskModal({ task, client, onClose, onDelete, onUpdate }:
   const handleDelete = async () => {
     const { deleteTask } = await import("@/actions/tarefas");
     await deleteTask(task.id);
+    onDelete?.();
+    onClose();
+    router.refresh();
+  };
+
+  const handleArchive = async () => {
+    setArchiving(true);
+    const { archiveTask } = await import("@/actions/tarefas");
+    await archiveTask(task.id);
     onDelete?.();
     onClose();
     router.refresh();
@@ -139,6 +149,9 @@ export default function TaskModal({ task, client, onClose, onDelete, onUpdate }:
               )}
             </div>
             <div className="flex items-center gap-1 shrink-0">
+              {!editing && (
+                <button onClick={handleArchive} disabled={archiving} className="text-on-surface-variant hover:text-warning p-1.5 rounded-lg hover:bg-warning/10 transition-colors disabled:opacity-50" title="Arquivar tarefa"><ArchiveMinimalistic size={16} /></button>
+              )}
               {!editing && (
                 <button onClick={() => setEditing(true)} className="text-on-surface-variant hover:text-primary p-1.5 rounded-lg hover:bg-surface-container-low transition-colors"><Pen size={16} /></button>
               )}

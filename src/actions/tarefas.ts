@@ -52,6 +52,44 @@ export async function deleteTask(taskId: string) {
   }
 }
 
+export async function completeTask(taskId: string) {
+  try {
+    const [task] = await db.select().from(schema.tasks).where(eq(schema.tasks.id, taskId));
+    if (!task) return { error: "Tarefa não encontrada." };
+    const cols = await db.select().from(schema.kanbanColumns).where(eq(schema.kanbanColumns.clientId, task.clientId!));
+    const concluido = cols.find((c) => c.servico === task.servico && /conclu[íi]d/i.test(c.titulo));
+    if (!concluido) return { error: "Coluna 'Concluído' não encontrada." };
+    await db.update(schema.tasks).set({ colunaId: concluido.id, arquivada: true }).where(eq(schema.tasks.id, taskId));
+    rv();
+    return { success: true, colunaId: concluido.id };
+  } catch (error) {
+    console.error("[completeTask] Error:", error);
+    return { error: "Falha ao concluir tarefa." };
+  }
+}
+
+export async function archiveTask(taskId: string) {
+  try {
+    await db.update(schema.tasks).set({ arquivada: true }).where(eq(schema.tasks.id, taskId));
+    rv();
+    return { success: true };
+  } catch (error) {
+    console.error("[archiveTask] Error:", error);
+    return { error: "Falha ao arquivar tarefa." };
+  }
+}
+
+export async function unarchiveTask(taskId: string) {
+  try {
+    await db.update(schema.tasks).set({ arquivada: false }).where(eq(schema.tasks.id, taskId));
+    rv();
+    return { success: true };
+  } catch (error) {
+    console.error("[unarchiveTask] Error:", error);
+    return { error: "Falha ao desarquivar tarefa." };
+  }
+}
+
 export async function moveTask(taskId: string, newColunaId: string) {
   try {
     await db.update(schema.tasks).set({ colunaId: newColunaId }).where(eq(schema.tasks.id, taskId));
