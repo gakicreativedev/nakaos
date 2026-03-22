@@ -13,7 +13,7 @@ import {
   BrandHubIcon,
   ProjectsIcon,
 } from "./icons";
-import { authClient } from "@/lib/auth/client";
+import { signOut } from "@/lib/auth/client";
 
 const NAV_ITEMS = [
   { id: "home", label: "Home", href: "/", icon: HomeIcon },
@@ -73,7 +73,7 @@ export default function Sidebar() {
         {/* Logout */}
         <div className="px-4 pb-6">
           <button
-            onClick={() => authClient.signOut()}
+            onClick={() => signOut({ callbackUrl: "/auth/sign-in" })}
             className="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-on-surface-variant/70 hover:text-error hover:bg-error/10 w-full text-sm"
           >
             <Logout2 size={20} />

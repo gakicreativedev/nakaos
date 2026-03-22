@@ -246,7 +246,8 @@ export const projetoMembros = pgTable("projeto_membros", {
 /* ── Configurações (Usuários) ── */
 export const usuarios = pgTable("usuarios", {
   id: text("id").primaryKey(),
-  authUserId: text("auth_user_id"), // Link to Neon Auth user
+  authUserId: text("auth_user_id"),
+  passwordHash: text("password_hash"),
   nome: text("nome").notNull(),
   email: text("email").notNull().unique(),
   cargo: text("cargo").notNull(),

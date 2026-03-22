@@ -3,15 +3,15 @@ import { redirect } from "next/navigation";
 import { ensureUsuario, getProjetoMembro } from "./queries";
 
 export async function requireAuth() {
-  const { data: session } = await auth.getSession();
+  const session = await auth();
 
   if (!session?.user) {
     redirect("/auth/sign-in");
   }
 
   const usuario = await ensureUsuario({
-    id: session.user.id,
-    email: session.user.email ?? session.user.id,
+    id: session.user.id!,
+    email: session.user.email ?? session.user.id!,
     displayName: session.user.name ?? "",
   });
 
