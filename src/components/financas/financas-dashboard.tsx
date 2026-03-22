@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { CloseCircle, ArrowUp, ArrowDown } from "@solar-icons/react";
 import type { Movimentacao, MovimentacaoCategoria, MovimentacaoStatus, Client } from "@/lib/types";
 
@@ -23,7 +24,7 @@ const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
 function CategoriaBadge({ categoria }: { categoria: string }) {
   const c = CATEGORIA_COLORS[categoria] ?? { bg: "rgba(107,114,128,0.15)", text: "#9ca3af" };
   return (
-    <span className="px-2.5 py-1 rounded-lg text-[10px] font-medium" style={{ background: c.bg, color: c.text }}>
+    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest" style={{ background: c.bg, color: c.text }}>
       {categoria}
     </span>
   );
@@ -32,7 +33,7 @@ function CategoriaBadge({ categoria }: { categoria: string }) {
 function StatusBadge({ status }: { status: string }) {
   const c = STATUS_COLORS[status] ?? { bg: "rgba(107,114,128,0.15)", text: "#9ca3af" };
   return (
-    <span className="px-2.5 py-1 rounded-lg text-[10px] font-medium" style={{ background: c.bg, color: c.text }}>
+    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest" style={{ background: c.bg, color: c.text }}>
       {status}
     </span>
   );
@@ -52,12 +53,12 @@ function BarChart({ data }: { data: { label: string; entradas: number; saidas: n
               title={`Entradas: R$ ${d.entradas.toLocaleString("pt-BR")}`}
             />
             <div
-              className="w-4 rounded-t bg-urgent/60 transition-all"
+              className="w-4 rounded-t bg-error/60 transition-all"
               style={{ height: `${(d.saidas / max) * 100}%` }}
               title={`Saídas: R$ ${d.saidas.toLocaleString("pt-BR")}`}
             />
           </div>
-          <span className="text-[10px] text-muted-soft">{d.label}</span>
+          <span className="text-[10px] text-outline">{d.label}</span>
         </div>
       ))}
     </div>
@@ -66,6 +67,7 @@ function BarChart({ data }: { data: { label: string; entradas: number; saidas: n
 
 /* ── New Movimentação Modal ── */
 function NewMovimentacaoModal({ onClose, clients }: { onClose: () => void; clients: Client[] }) {
+  const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
 
@@ -83,16 +85,16 @@ function NewMovimentacaoModal({ onClose, clients }: { onClose: () => void; clien
       return;
     }
     onClose();
-    window.location.reload();
+    router.refresh();
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-lg bg-[#1a1a1a] border border-border rounded-2xl p-6 max-h-[90vh] overflow-y-auto">
+      <div className="relative w-full max-w-lg bg-surface-container border border-outline-variant/15 rounded-2xl p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-lg font-semibold text-gradient">Nova Movimentação</h2>
-          <button onClick={onClose} className="text-muted hover:text-foreground transition-colors p-1">
+          <h2 className="text-lg font-semibold text-on-surface">Nova Movimentação</h2>
+          <button onClick={onClose} className="text-on-surface-variant hover:text-on-surface transition-colors p-1">
             <CloseCircle size={18} />
           </button>
         </div>
@@ -100,18 +102,18 @@ function NewMovimentacaoModal({ onClose, clients }: { onClose: () => void; clien
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-medium text-muted block mb-1.5">Valor <span className="text-urgent">*</span></label>
-              <input name="valor" type="text" placeholder="R$ 0,00" required className="w-full px-3.5 py-2.5 rounded-xl bg-[#141414] border border-border text-sm text-foreground placeholder:text-muted-soft focus:outline-none focus:border-border-hover transition-colors" />
+              <label className="text-[10px] font-medium text-on-surface-variant uppercase tracking-widest block mb-1.5">Valor <span className="text-error">*</span></label>
+              <input name="valor" type="text" placeholder="R$ 0,00" required className="w-full px-3.5 py-2.5 bg-surface-container-low border-none rounded-xl text-sm text-on-surface placeholder:text-outline/40 focus:bg-surface-container-high focus:ring-1 focus:ring-primary transition-all outline-none [color-scheme:dark]" />
             </div>
             <div>
-              <label className="text-xs font-medium text-muted block mb-1.5">Data <span className="text-urgent">*</span></label>
-              <input name="data" type="date" required className="w-full px-3.5 py-2.5 rounded-xl bg-[#141414] border border-border text-sm text-foreground focus:outline-none focus:border-border-hover transition-colors" />
+              <label className="text-[10px] font-medium text-on-surface-variant uppercase tracking-widest block mb-1.5">Data <span className="text-error">*</span></label>
+              <input name="data" type="date" required className="w-full px-3.5 py-2.5 bg-surface-container-low border-none rounded-xl text-sm text-on-surface focus:bg-surface-container-high focus:ring-1 focus:ring-primary transition-all outline-none [color-scheme:dark]" />
             </div>
           </div>
 
           <div>
-            <label className="text-xs font-medium text-muted block mb-1.5">Categoria <span className="text-urgent">*</span></label>
-            <select name="categoria" required className="w-full px-3.5 py-2.5 rounded-xl bg-[#141414] border border-border text-sm text-foreground focus:outline-none focus:border-border-hover transition-colors">
+            <label className="text-[10px] font-medium text-on-surface-variant uppercase tracking-widest block mb-1.5">Categoria <span className="text-error">*</span></label>
+            <select name="categoria" required className="w-full px-3.5 py-2.5 bg-surface-container-low border-none rounded-xl text-sm text-on-surface focus:bg-surface-container-high focus:ring-1 focus:ring-primary transition-all outline-none [color-scheme:dark]">
               <option value="">Selecionar...</option>
               <option value="Receita">Receita</option>
               <option value="Despesa Operacional">Despesa Operacional</option>
@@ -122,13 +124,13 @@ function NewMovimentacaoModal({ onClose, clients }: { onClose: () => void; clien
           </div>
 
           <div>
-            <label className="text-xs font-medium text-muted block mb-1.5">Descrição</label>
-            <input name="descricao" type="text" placeholder="Detalhamento do lançamento" className="w-full px-3.5 py-2.5 rounded-xl bg-[#141414] border border-border text-sm text-foreground placeholder:text-muted-soft focus:outline-none focus:border-border-hover transition-colors" />
+            <label className="text-[10px] font-medium text-on-surface-variant uppercase tracking-widest block mb-1.5">Descrição</label>
+            <input name="descricao" type="text" placeholder="Detalhamento do lançamento" className="w-full px-3.5 py-2.5 bg-surface-container-low border-none rounded-xl text-sm text-on-surface placeholder:text-outline/40 focus:bg-surface-container-high focus:ring-1 focus:ring-primary transition-all outline-none [color-scheme:dark]" />
           </div>
 
           <div>
-            <label className="text-xs font-medium text-muted block mb-1.5">Cliente vinculado</label>
-            <select name="clientId" className="w-full px-3.5 py-2.5 rounded-xl bg-[#141414] border border-border text-sm text-foreground focus:outline-none focus:border-border-hover transition-colors">
+            <label className="text-[10px] font-medium text-on-surface-variant uppercase tracking-widest block mb-1.5">Cliente vinculado</label>
+            <select name="clientId" className="w-full px-3.5 py-2.5 bg-surface-container-low border-none rounded-xl text-sm text-on-surface focus:bg-surface-container-high focus:ring-1 focus:ring-primary transition-all outline-none [color-scheme:dark]">
               <option value="">Nenhum (interno)</option>
               {clients.map((c) => (
                 <option key={c.id} value={c.id}>{c.nome}</option>
@@ -137,8 +139,8 @@ function NewMovimentacaoModal({ onClose, clients }: { onClose: () => void; clien
           </div>
 
           <div>
-            <label className="text-xs font-medium text-muted block mb-1.5">Status</label>
-            <select name="status" className="w-full px-3.5 py-2.5 rounded-xl bg-[#141414] border border-border text-sm text-foreground focus:outline-none focus:border-border-hover transition-colors">
+            <label className="text-[10px] font-medium text-on-surface-variant uppercase tracking-widest block mb-1.5">Status</label>
+            <select name="status" className="w-full px-3.5 py-2.5 bg-surface-container-low border-none rounded-xl text-sm text-on-surface focus:bg-surface-container-high focus:ring-1 focus:ring-primary transition-all outline-none [color-scheme:dark]">
               <option value="Pendente">Pendente</option>
               <option value="Pago">Pago</option>
               <option value="Agendado">Agendado</option>
@@ -146,19 +148,19 @@ function NewMovimentacaoModal({ onClose, clients }: { onClose: () => void; clien
           </div>
 
           <div>
-            <label className="text-xs font-medium text-muted block mb-1.5">Comprovante</label>
-            <div className="w-full px-3.5 py-6 rounded-xl border border-dashed border-border text-center text-muted-soft text-xs cursor-pointer hover:border-border-hover transition-colors">
+            <label className="text-[10px] font-medium text-on-surface-variant uppercase tracking-widest block mb-1.5">Comprovante</label>
+            <div className="w-full px-3.5 py-6 rounded-xl border-2 border-dashed border-outline-variant/20 text-center text-outline text-xs cursor-pointer hover:opacity-90 transition-colors">
               Clique para anexar arquivo
             </div>
           </div>
 
-          {formError && <p className="text-red-400 text-sm text-center">{formError}</p>}
+          {formError && <p className="text-error text-sm text-center">{formError}</p>}
 
           <div className="flex gap-3 mt-2">
-            <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-border text-sm text-muted-soft hover:text-muted hover:border-border-hover transition-all">
+            <button type="button" onClick={onClose} className="flex-1 py-3 rounded-full text-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-all">
               Cancelar
             </button>
-            <button type="submit" disabled={saving} className="flex-1 py-2.5 rounded-xl bg-gradient-to-t from-[#1a1a1a] to-[#2a2a2a] border border-border-hover text-sm font-medium text-foreground hover:border-[#3a3a3a] transition-colors disabled:opacity-50">
+            <button type="submit" disabled={saving} className="flex-1 py-3 rounded-full bg-primary text-on-primary text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50">
               {saving ? "Salvando..." : "Criar Movimentação"}
             </button>
           </div>
@@ -232,12 +234,12 @@ export default function FinancasDashboard({ movimentacoes, clients }: FinancasDa
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-gradient tracking-tight">Finanças</h1>
-          <p className="text-muted text-sm mt-1">Visão financeira de março 2026</p>
+          <h1 className="text-2xl font-semibold text-on-surface tracking-tight">Finanças</h1>
+          <p className="text-on-surface-variant text-sm mt-1">Visão financeira de março 2026</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="px-4 py-2.5 rounded-xl bg-gradient-to-t from-[#1a1a1a] to-[#2a2a2a] border border-border-hover text-sm font-medium text-foreground hover:border-[#3a3a3a] transition-colors"
+          className="bg-primary text-on-primary px-6 py-2.5 rounded-full text-sm font-medium hover:opacity-90 transition-opacity"
         >
           + Nova Movimentação
         </button>
@@ -254,15 +256,15 @@ export default function FinancasDashboard({ movimentacoes, clients }: FinancasDa
       {/* Charts + Client Revenue */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
         {/* Bar chart */}
-        <div className="bg-gradient-to-b from-surface to-[#141414] rounded-2xl border border-border p-5">
+        <div className="bg-surface-container-low rounded-xl p-5">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-medium text-gradient">Entradas x Saídas</h2>
+            <h2 className="text-sm font-medium text-on-surface">Entradas x Saídas</h2>
             <div className="flex gap-3">
-              <span className="flex items-center gap-1.5 text-[10px] text-muted-soft">
+              <span className="flex items-center gap-1.5 text-[10px] text-outline">
                 <span className="w-2.5 h-2.5 rounded bg-success/60" /> Entradas
               </span>
-              <span className="flex items-center gap-1.5 text-[10px] text-muted-soft">
-                <span className="w-2.5 h-2.5 rounded bg-urgent/60" /> Saídas
+              <span className="flex items-center gap-1.5 text-[10px] text-outline">
+                <span className="w-2.5 h-2.5 rounded bg-error/60" /> Saídas
               </span>
             </div>
           </div>
@@ -270,12 +272,12 @@ export default function FinancasDashboard({ movimentacoes, clients }: FinancasDa
         </div>
 
         {/* Client revenue */}
-        <div className="bg-gradient-to-b from-surface to-[#141414] rounded-2xl border border-border p-5">
-          <h2 className="text-sm font-medium text-gradient mb-4">Receita por Cliente</h2>
+        <div className="bg-surface-container-low rounded-xl p-5">
+          <h2 className="text-sm font-medium text-on-surface mb-4">Receita por Cliente</h2>
           <div className="flex flex-col gap-2.5">
             {clientRevenue.map((c) => (
               <div key={c.nome} className="flex items-center justify-between">
-                <span className="text-xs text-[#c8c8c8]">{c.nome}</span>
+                <span className="text-xs text-on-surface">{c.nome}</span>
                 <span className="text-xs font-medium text-success">
                   R$ {c.valor.toLocaleString("pt-BR")}
                 </span>
@@ -285,11 +287,11 @@ export default function FinancasDashboard({ movimentacoes, clients }: FinancasDa
 
           {/* Upcoming alerts */}
           {upcoming.length > 0 && (
-            <div className="mt-5 pt-4 border-t border-border">
-              <p className="text-[11px] font-medium text-muted uppercase tracking-wider mb-2">Vencendo em 7 dias</p>
+            <div className="mt-5 pt-4 border-t border-outline-variant/10">
+              <p className="text-[11px] font-medium text-on-surface-variant uppercase tracking-wider mb-2">Vencendo em 7 dias</p>
               {upcoming.map((m) => (
                 <div key={m.id} className="flex items-center justify-between py-1.5">
-                  <span className="text-xs text-muted-soft truncate mr-2">{m.descricao}</span>
+                  <span className="text-xs text-outline truncate mr-2">{m.descricao}</span>
                   <span className="text-xs text-warning font-medium whitespace-nowrap">
                     R$ {m.valor.toLocaleString("pt-BR")}
                   </span>
@@ -303,19 +305,19 @@ export default function FinancasDashboard({ movimentacoes, clients }: FinancasDa
       {/* Movimentações List */}
       <div>
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
-          <h2 className="text-sm font-medium text-gradient">Movimentações</h2>
+          <h2 className="text-sm font-medium text-on-surface">Movimentações</h2>
           <div className="flex gap-2 flex-wrap">
             <input
               type="text"
               placeholder="Buscar..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="px-3 py-1.5 rounded-lg bg-surface border border-border text-[11px] text-foreground placeholder:text-muted-soft focus:outline-none focus:border-border-hover w-36"
+              className="px-3 py-2 rounded-full bg-surface-container-low border-none text-[11px] text-on-surface placeholder:text-outline/40 focus:ring-1 focus:ring-primary outline-none w-36"
             />
             <select
               value={filterCategoria}
               onChange={(e) => setFilterCategoria(e.target.value as MovimentacaoCategoria | "Todas")}
-              className="px-3 py-1.5 rounded-lg bg-surface border border-border text-[11px] text-muted-soft focus:outline-none focus:border-border-hover"
+              className="px-3 py-2 rounded-full bg-surface-container-low border-none text-[11px] text-outline focus:ring-1 focus:ring-primary outline-none"
             >
               <option value="Todas">Todas categorias</option>
               <option value="Receita">Receita</option>
@@ -327,7 +329,7 @@ export default function FinancasDashboard({ movimentacoes, clients }: FinancasDa
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value as MovimentacaoStatus | "Todos")}
-              className="px-3 py-1.5 rounded-lg bg-surface border border-border text-[11px] text-muted-soft focus:outline-none focus:border-border-hover"
+              className="px-3 py-2 rounded-full bg-surface-container-low border-none text-[11px] text-outline focus:ring-1 focus:ring-primary outline-none"
             >
               <option value="Todos">Todos status</option>
               <option value="Pago">Pago</option>
@@ -339,21 +341,21 @@ export default function FinancasDashboard({ movimentacoes, clients }: FinancasDa
           </div>
         </div>
 
-        <div className="bg-gradient-to-b from-surface to-[#141414] rounded-2xl border border-border overflow-hidden">
+        <div className="bg-surface-container-low rounded-xl overflow-hidden">
           {filtered.length === 0 ? (
-            <div className="px-5 py-8 text-center text-muted-soft text-xs">Nenhuma movimentação encontrada.</div>
+            <div className="px-5 py-8 text-center text-outline text-xs">Nenhuma movimentação encontrada.</div>
           ) : (
             filtered.map((mov) => {
               const isReceita = mov.categoria === "Receita";
               const client = clients.find((c) => c.id === mov.clientId);
               return (
-                <div key={mov.id} className="flex items-center px-3 sm:px-5 py-3.5 border-b border-[#1a1a1a] last:border-b-0 gap-2 sm:gap-3 hover:bg-white/[0.02] transition-colors">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isReceita ? "bg-success/10" : "bg-urgent/10"}`}>
+                <div key={mov.id} className="flex items-center px-3 sm:px-5 py-3.5 gap-2 sm:gap-3 hover:bg-surface-container transition-colors">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isReceita ? "bg-success/10" : "bg-error/10"}`}>
                     {isReceita ? <ArrowUp size={14} color="#4ade80" /> : <ArrowDown size={14} color="#ef4444" />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-medium text-[#c8c8c8] truncate">{mov.descricao}</p>
-                    <p className="text-[10px] text-muted-soft mt-0.5">
+                    <p className="text-[13px] font-medium text-on-surface truncate">{mov.descricao}</p>
+                    <p className="text-[10px] text-outline mt-0.5">
                       {new Date(mov.data).toLocaleDateString("pt-BR")}
                       {client && ` · ${client.nome}`}
                     </p>
@@ -362,7 +364,7 @@ export default function FinancasDashboard({ movimentacoes, clients }: FinancasDa
                     <CategoriaBadge categoria={mov.categoria} />
                     <StatusBadge status={mov.status} />
                   </div>
-                  <span className={`text-sm font-semibold whitespace-nowrap ${isReceita ? "text-success" : "text-urgent"}`}>
+                  <span className={`text-sm font-semibold whitespace-nowrap ${isReceita ? "text-success" : "text-error"}`}>
                     {isReceita ? "+" : "-"} R$ {mov.valor.toLocaleString("pt-BR")}
                   </span>
                 </div>
@@ -378,10 +380,10 @@ export default function FinancasDashboard({ movimentacoes, clients }: FinancasDa
 }
 
 function SummaryCard({ label, value, accent, isPercent = false }: { label: string; value: number; accent: string; isPercent?: boolean }) {
-  const colorClass = accent === "success" ? "text-success" : "text-urgent";
+  const colorClass = accent === "success" ? "text-success" : "text-error";
   return (
-    <div className="bg-gradient-to-b from-surface to-[#141414] rounded-2xl border border-border p-5">
-      <p className="text-[11px] font-medium text-muted uppercase tracking-wider">{label}</p>
+    <div className="bg-surface-container-lowest rounded-xl p-6">
+      <p className="text-[11px] font-medium text-on-surface-variant uppercase tracking-wider">{label}</p>
       <p className={`text-2xl font-semibold mt-2 tracking-tight ${colorClass}`}>
         {isPercent ? `${value.toFixed(1)}%` : `R$ ${Math.abs(value).toLocaleString("pt-BR")}`}
       </p>

@@ -28,11 +28,11 @@ const TABS: { id: TabId; label: string }[] = [
 /* ── Role badge color ── */
 function roleBadge(role: string) {
   const map: Record<string, string> = {
-    Admin: "bg-purple-500/20 text-purple-400",
-    Editor: "bg-blue-500/20 text-blue-400",
-    Visualizador: "bg-gray-500/20 text-gray-400",
+    Admin: "bg-primary-container/20 text-primary",
+    Editor: "bg-secondary-container/20 text-secondary",
+    Visualizador: "bg-surface-container text-on-surface-variant",
   };
-  return map[role] ?? "bg-gray-500/20 text-gray-400";
+  return map[role] ?? "bg-surface-container text-on-surface-variant";
 }
 
 /* ── Main Component ── */
@@ -56,8 +56,8 @@ export default function ConfiguracoesDashboard({ usuarios: initialUsuarios, curr
     <div className="p-4 md:p-8 max-w-5xl mx-auto">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-gradient">Configurações</h1>
-        <p className="text-sm text-muted mt-1">Gerencie usuários, permissões e preferências do sistema.</p>
+        <h1 className="text-2xl font-semibold text-on-surface">Configurações</h1>
+        <p className="text-sm text-on-surface-variant mt-1">Gerencie usuários, permissões e preferências do sistema.</p>
       </div>
 
       {/* Tabs */}
@@ -68,8 +68,8 @@ export default function ConfiguracoesDashboard({ usuarios: initialUsuarios, curr
             onClick={() => setActiveTab(tab.id)}
             className={`px-4 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${
               activeTab === tab.id
-                ? "bg-surface border border-border text-foreground"
-                : "text-muted hover:text-foreground hover:bg-white/5"
+                ? "bg-surface-container-low text-on-surface"
+                : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container"
             }`}
           >
             {tab.label}
@@ -136,35 +136,35 @@ function UsersTab({
         {usuarios.map((user) => (
           <div
             key={user.id}
-            className={`bg-surface border border-border rounded-2xl p-5 transition-opacity ${
+            className={`bg-surface-container-low rounded-xl p-5 transition-opacity ${
               !user.ativo ? "opacity-50" : ""
             }`}
           >
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               {/* Avatar + Info */}
               <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500/30 to-blue-500/30 flex items-center justify-center text-sm font-semibold text-foreground shrink-0">
+                <div className="w-10 h-10 rounded-full bg-primary-container/20 flex items-center justify-center text-sm font-semibold text-primary shrink-0">
                   {user.nome.charAt(0).toUpperCase()}
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-medium text-foreground">{user.nome}</span>
+                    <span className="text-sm font-medium text-on-surface">{user.nome}</span>
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${roleBadge(user.role)}`}>
                       {ROLE_PERMISSIONS[user.role]?.label ?? user.role}
                     </span>
                     {!user.ativo && (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 font-medium">
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-error/20 text-error font-medium">
                         Inativo
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-muted truncate">{user.email}</p>
-                  <p className="text-xs text-muted/60">{user.cargo}</p>
+                  <p className="text-xs text-on-surface-variant truncate">{user.email}</p>
+                  <p className="text-xs text-on-surface-variant/60">{user.cargo}</p>
                 </div>
               </div>
 
               {/* Meta */}
-              <div className="flex items-center gap-2 text-xs text-muted/60 sm:text-right">
+              <div className="flex items-center gap-2 text-xs text-on-surface-variant/60 sm:text-right">
                 <span>
                   {user.ultimoAcesso
                     ? `Último acesso: ${new Date(user.ultimoAcesso).toLocaleDateString("pt-BR")}`
@@ -180,7 +180,7 @@ function UsersTab({
                       <select
                         value={editRole}
                         onChange={(e) => setEditRole(e.target.value)}
-                        className="bg-background border border-border rounded-lg px-2 py-1.5 text-xs text-foreground focus:outline-none"
+                        className="bg-surface-container-low border-none rounded-xl px-2 py-1.5 text-xs text-on-surface focus:bg-surface-container-high focus:ring-1 focus:ring-primary transition-all outline-none"
                       >
                         <option value="Admin">Administrador</option>
                         <option value="Editor">Editor</option>
@@ -189,13 +189,13 @@ function UsersTab({
                       <button
                         onClick={() => handleRoleChange(user.id, editRole)}
                         disabled={pending}
-                        className="px-3 py-1.5 rounded-lg bg-foreground text-background text-xs font-medium hover:opacity-90 disabled:opacity-50"
+                        className="px-3 py-1.5 rounded-full bg-primary text-on-primary text-xs font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
                       >
                         Salvar
                       </button>
                       <button
                         onClick={() => setEditingId(null)}
-                        className="px-3 py-1.5 rounded-lg border border-border text-xs text-muted hover:bg-white/5"
+                        className="px-3 py-1.5 rounded-full text-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-all"
                       >
                         Cancelar
                       </button>
@@ -207,7 +207,7 @@ function UsersTab({
                           setEditRole(user.role);
                           setEditingId(user.id);
                         }}
-                        className="p-2 rounded-lg text-muted hover:text-foreground hover:bg-white/5 transition-colors"
+                        className="p-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors"
                         title="Editar permissão"
                       >
                         <Pen2 size={16} />
@@ -218,8 +218,8 @@ function UsersTab({
                           disabled={pending}
                           className={`p-2 rounded-lg transition-colors disabled:opacity-50 ${
                             user.ativo
-                              ? "text-muted hover:text-red-400 hover:bg-red-500/10"
-                              : "text-green-400 hover:bg-green-500/10"
+                              ? "text-on-surface-variant hover:text-error hover:bg-error/10"
+                              : "text-success hover:bg-success/10"
                           }`}
                           title={user.ativo ? "Desativar" : "Reativar"}
                         >
@@ -237,21 +237,21 @@ function UsersTab({
 
       {/* Summary */}
       <div className="grid grid-cols-3 gap-3 mt-6">
-        <div className="bg-surface border border-border rounded-2xl p-4 text-center">
-          <p className="text-2xl font-semibold text-foreground">{usuarios.length}</p>
-          <p className="text-xs text-muted mt-1">Total de Usuários</p>
+        <div className="bg-surface-container-low rounded-xl p-4 text-center">
+          <p className="text-2xl font-semibold text-on-surface">{usuarios.length}</p>
+          <p className="text-xs text-on-surface-variant mt-1">Total de Usuários</p>
         </div>
-        <div className="bg-surface border border-border rounded-2xl p-4 text-center">
-          <p className="text-2xl font-semibold text-foreground">
+        <div className="bg-surface-container-low rounded-xl p-4 text-center">
+          <p className="text-2xl font-semibold text-on-surface">
             {usuarios.filter((u) => u.ativo).length}
           </p>
-          <p className="text-xs text-muted mt-1">Ativos</p>
+          <p className="text-xs text-on-surface-variant mt-1">Ativos</p>
         </div>
-        <div className="bg-surface border border-border rounded-2xl p-4 text-center">
-          <p className="text-2xl font-semibold text-foreground">
+        <div className="bg-surface-container-low rounded-xl p-4 text-center">
+          <p className="text-2xl font-semibold text-on-surface">
             {usuarios.filter((u) => u.role === "Admin").length}
           </p>
-          <p className="text-xs text-muted mt-1">Administradores</p>
+          <p className="text-xs text-on-surface-variant mt-1">Administradores</p>
         </div>
       </div>
     </div>
@@ -278,10 +278,10 @@ function PermissoesTab() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3 mb-2">
-        <Shield size={20} className="text-purple-400" />
+        <Shield size={20} className="text-primary" />
         <div>
-          <h2 className="text-base font-semibold text-foreground">Níveis de Permissão</h2>
-          <p className="text-xs text-muted">Cada nível define o que o usuário pode acessar e modificar no sistema.</p>
+          <h2 className="text-base font-semibold text-on-surface">Níveis de Permissão</h2>
+          <p className="text-xs text-on-surface-variant">Cada nível define o que o usuário pode acessar e modificar no sistema.</p>
         </div>
       </div>
 
@@ -290,13 +290,13 @@ function PermissoesTab() {
         {roles.map((role) => {
           const info = ROLE_PERMISSIONS[role];
           return (
-            <div key={role} className="bg-surface border border-border rounded-2xl p-5">
+            <div key={role} className="bg-surface-container-low rounded-xl p-5">
               <div className="flex items-center gap-2 mb-3">
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${roleBadge(role)}`}>
                   {info.label}
                 </span>
               </div>
-              <p className="text-xs text-muted mb-4">{info.descricao}</p>
+              <p className="text-xs text-on-surface-variant mb-4">{info.descricao}</p>
               <div className="space-y-2">
                 {allPermissions.map((perm) => {
                   const has = info.permissoes.includes(perm);
@@ -305,13 +305,13 @@ function PermissoesTab() {
                       <div
                         className={`w-4 h-4 rounded flex items-center justify-center text-[10px] ${
                           has
-                            ? "bg-green-500/20 text-green-400"
-                            : "bg-white/5 text-muted/30"
+                            ? "bg-success/20 text-success"
+                            : "bg-outline-variant/10 text-on-surface-variant/30"
                         }`}
                       >
                         {has ? "✓" : "—"}
                       </div>
-                      <span className={`text-xs ${has ? "text-foreground" : "text-muted/40"}`}>
+                      <span className={`text-xs ${has ? "text-on-surface" : "text-on-surface-variant/40"}`}>
                         {perm}
                       </span>
                     </div>
@@ -324,14 +324,14 @@ function PermissoesTab() {
       </div>
 
       {/* Permission Matrix Table */}
-      <div className="bg-surface border border-border rounded-2xl p-5 overflow-x-auto">
-        <h3 className="text-sm font-semibold text-foreground mb-4">Matriz de Permissões</h3>
+      <div className="bg-surface-container-low rounded-xl p-5 overflow-x-auto">
+        <h3 className="text-sm font-semibold text-on-surface mb-4">Matriz de Permissões</h3>
         <table className="w-full text-xs">
           <thead>
-            <tr className="border-b border-border">
-              <th className="text-left py-2 pr-4 text-muted font-medium">Módulo</th>
+            <tr className="border-b border-outline-variant/10">
+              <th className="text-left py-2 pr-4 text-on-surface-variant font-medium">Módulo</th>
               {roles.map((r) => (
-                <th key={r} className="text-center py-2 px-3 text-muted font-medium">
+                <th key={r} className="text-center py-2 px-3 text-on-surface-variant font-medium">
                   {ROLE_PERMISSIONS[r].label}
                 </th>
               ))}
@@ -346,17 +346,17 @@ function PermissoesTab() {
               { modulo: "Finanças", perms: ["Completo", "Bloqueado", "Bloqueado"] },
               { modulo: "Configurações", perms: ["Completo", "Bloqueado", "Bloqueado"] },
             ].map((row) => (
-              <tr key={row.modulo} className="border-b border-border/50">
-                <td className="py-2.5 pr-4 text-foreground font-medium">{row.modulo}</td>
+              <tr key={row.modulo} className="border-b border-outline-variant/5">
+                <td className="py-2.5 pr-4 text-on-surface font-medium">{row.modulo}</td>
                 {row.perms.map((perm, i) => {
                   const color =
                     perm === "Completo"
-                      ? "text-green-400"
+                      ? "text-success"
                       : perm === "Editar"
-                      ? "text-blue-400"
+                      ? "text-secondary"
                       : perm === "Leitura"
-                      ? "text-yellow-400"
-                      : "text-red-400";
+                      ? "text-warning"
+                      : "text-error";
                   return (
                     <td key={i} className={`text-center py-2.5 px-3 ${color}`}>
                       {perm}
@@ -402,22 +402,22 @@ function AlertasTab({
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3 mb-2">
-        <Bell size={20} className="text-yellow-400" />
+        <Bell size={20} className="text-warning" />
         <div>
-          <h2 className="text-base font-semibold text-foreground">Configuração de Alertas</h2>
-          <p className="text-xs text-muted">Personalize as notificações para cada usuário.</p>
+          <h2 className="text-base font-semibold text-on-surface">Configuração de Alertas</h2>
+          <p className="text-xs text-on-surface-variant">Personalize as notificações para cada usuário.</p>
         </div>
       </div>
 
       {usuarios.map((user) => (
-        <div key={user.id} className="bg-surface border border-border rounded-2xl p-5">
+        <div key={user.id} className="bg-surface-container-low rounded-xl p-5">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500/30 to-blue-500/30 flex items-center justify-center text-xs font-semibold text-foreground">
+            <div className="w-8 h-8 rounded-full bg-primary-container/20 flex items-center justify-center text-xs font-semibold text-on-surface">
               {user.nome.charAt(0).toUpperCase()}
             </div>
             <div>
-              <p className="text-sm font-medium text-foreground">{user.nome}</p>
-              <p className="text-xs text-muted">{user.email}</p>
+              <p className="text-sm font-medium text-on-surface">{user.nome}</p>
+              <p className="text-xs text-on-surface-variant">{user.email}</p>
             </div>
           </div>
 
@@ -425,16 +425,16 @@ function AlertasTab({
             {alertTypes.map((alert) => (
               <div
                 key={alert.key}
-                className="flex items-center justify-between py-2 border-b border-border/50 last:border-0"
+                className="flex items-center justify-between py-2 border-b border-outline-variant/5 last:border-0"
               >
                 <div>
-                  <p className="text-sm text-foreground">{alert.label}</p>
-                  <p className="text-xs text-muted/60">{alert.descricao}</p>
+                  <p className="text-sm text-on-surface">{alert.label}</p>
+                  <p className="text-xs text-on-surface-variant/60">{alert.descricao}</p>
                 </div>
                 <button
                   onClick={() => toggleAlerta(user.id, alert.key)}
                   className={`relative w-11 h-6 rounded-full transition-colors ${
-                    (user.alertas as Record<string, boolean> | null)?.[alert.key] ? "bg-green-500" : "bg-white/10"
+                    (user.alertas as Record<string, boolean> | null)?.[alert.key] ? "bg-success" : "bg-outline-variant/10"
                   }`}
                 >
                   <span
@@ -459,52 +459,52 @@ function GeralTab() {
   return (
     <div className="space-y-6">
       {/* Agency Info */}
-      <div className="bg-surface border border-border rounded-2xl p-5">
-        <h3 className="text-sm font-semibold text-foreground mb-4">Dados da Agência</h3>
+      <div className="bg-surface-container-low rounded-xl p-5">
+        <h3 className="text-sm font-semibold text-on-surface mb-4">Dados da Agência</h3>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="block text-xs text-muted mb-1">Nome da Agência</label>
-            <input type="text" defaultValue="Gaki Marketing Digital" className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-foreground/30" />
+            <label className="text-[10px] font-medium text-on-surface-variant uppercase tracking-widest block mb-1">Nome da Agência</label>
+            <input type="text" defaultValue="Gaki Marketing Digital" className="w-full bg-surface-container-low border-none rounded-xl px-4 py-2.5 text-sm text-on-surface placeholder:text-outline/40 focus:bg-surface-container-high focus:ring-1 focus:ring-primary transition-all outline-none" />
           </div>
           <div>
-            <label className="block text-xs text-muted mb-1">CNPJ</label>
-            <input type="text" defaultValue="00.000.000/0001-00" className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-foreground/30" />
+            <label className="text-[10px] font-medium text-on-surface-variant uppercase tracking-widest block mb-1">CNPJ</label>
+            <input type="text" defaultValue="00.000.000/0001-00" className="w-full bg-surface-container-low border-none rounded-xl px-4 py-2.5 text-sm text-on-surface placeholder:text-outline/40 focus:bg-surface-container-high focus:ring-1 focus:ring-primary transition-all outline-none" />
           </div>
           <div>
-            <label className="block text-xs text-muted mb-1">E-mail Principal</label>
-            <input type="email" defaultValue="contato@gaki.com.br" className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-foreground/30" />
+            <label className="text-[10px] font-medium text-on-surface-variant uppercase tracking-widest block mb-1">E-mail Principal</label>
+            <input type="email" defaultValue="contato@gaki.com.br" className="w-full bg-surface-container-low border-none rounded-xl px-4 py-2.5 text-sm text-on-surface placeholder:text-outline/40 focus:bg-surface-container-high focus:ring-1 focus:ring-primary transition-all outline-none" />
           </div>
           <div>
-            <label className="block text-xs text-muted mb-1">Telefone</label>
-            <input type="text" defaultValue="(11) 99999-0000" className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-foreground/30" />
+            <label className="text-[10px] font-medium text-on-surface-variant uppercase tracking-widest block mb-1">Telefone</label>
+            <input type="text" defaultValue="(11) 99999-0000" className="w-full bg-surface-container-low border-none rounded-xl px-4 py-2.5 text-sm text-on-surface placeholder:text-outline/40 focus:bg-surface-container-high focus:ring-1 focus:ring-primary transition-all outline-none" />
           </div>
         </div>
-        <button className="mt-4 px-4 py-2.5 rounded-xl bg-foreground text-background text-sm font-medium hover:opacity-90 transition-opacity">
+        <button className="mt-4 px-4 py-3 rounded-full bg-primary text-on-primary text-sm font-medium hover:opacity-90 transition-opacity">
           Salvar Alterações
         </button>
       </div>
 
       {/* System Preferences */}
-      <div className="bg-surface border border-border rounded-2xl p-5">
-        <h3 className="text-sm font-semibold text-foreground mb-4">Preferências do Sistema</h3>
+      <div className="bg-surface-container-low rounded-xl p-5">
+        <h3 className="text-sm font-semibold text-on-surface mb-4">Preferências do Sistema</h3>
         <div className="space-y-4">
-          <div className="flex items-center justify-between py-2 border-b border-border/50">
+          <div className="flex items-center justify-between py-2 border-b border-outline-variant/5">
             <div>
-              <p className="text-sm text-foreground">Moeda padrão</p>
-              <p className="text-xs text-muted/60">Utilizada no módulo Finanças e contratos.</p>
+              <p className="text-sm text-on-surface">Moeda padrão</p>
+              <p className="text-xs text-on-surface-variant/60">Utilizada no módulo Finanças e contratos.</p>
             </div>
-            <select className="bg-background border border-border rounded-lg px-3 py-1.5 text-sm text-foreground focus:outline-none">
+            <select className="bg-surface-container-low border-none rounded-xl px-3 py-1.5 text-sm text-on-surface focus:bg-surface-container-high focus:ring-1 focus:ring-primary transition-all outline-none">
               <option>BRL (R$)</option>
               <option>USD ($)</option>
               <option>EUR (€)</option>
             </select>
           </div>
-          <div className="flex items-center justify-between py-2 border-b border-border/50">
+          <div className="flex items-center justify-between py-2 border-b border-outline-variant/5">
             <div>
-              <p className="text-sm text-foreground">Fuso horário</p>
-              <p className="text-xs text-muted/60">Usado para prazos e alertas.</p>
+              <p className="text-sm text-on-surface">Fuso horário</p>
+              <p className="text-xs text-on-surface-variant/60">Usado para prazos e alertas.</p>
             </div>
-            <select className="bg-background border border-border rounded-lg px-3 py-1.5 text-sm text-foreground focus:outline-none">
+            <select className="bg-surface-container-low border-none rounded-xl px-3 py-1.5 text-sm text-on-surface focus:bg-surface-container-high focus:ring-1 focus:ring-primary transition-all outline-none">
               <option>América/São Paulo (BRT)</option>
               <option>América/Manaus (AMT)</option>
               <option>UTC</option>
@@ -512,10 +512,10 @@ function GeralTab() {
           </div>
           <div className="flex items-center justify-between py-2">
             <div>
-              <p className="text-sm text-foreground">Alerta de renovação</p>
-              <p className="text-xs text-muted/60">Dias de antecedência para alertas de contrato.</p>
+              <p className="text-sm text-on-surface">Alerta de renovação</p>
+              <p className="text-xs text-on-surface-variant/60">Dias de antecedência para alertas de contrato.</p>
             </div>
-            <select defaultValue="30 dias" className="bg-background border border-border rounded-lg px-3 py-1.5 text-sm text-foreground focus:outline-none">
+            <select defaultValue="30 dias" className="bg-surface-container-low border-none rounded-xl px-3 py-1.5 text-sm text-on-surface focus:bg-surface-container-high focus:ring-1 focus:ring-primary transition-all outline-none">
               <option>15 dias</option>
               <option>30 dias</option>
               <option>45 dias</option>
@@ -526,14 +526,14 @@ function GeralTab() {
       </div>
 
       {/* Version Info */}
-      <div className="bg-surface border border-border rounded-2xl p-5">
-        <h3 className="text-sm font-semibold text-foreground mb-3">Sobre o Naka OS</h3>
-        <div className="space-y-2 text-xs text-muted">
-          <p><span className="text-foreground font-medium">Versão:</span> 1.0.0</p>
-          <p><span className="text-foreground font-medium">Build:</span> Next.js 16 + Tailwind CSS v4</p>
-          <p><span className="text-foreground font-medium">Database:</span> Neon PostgreSQL</p>
-          <p><span className="text-foreground font-medium">Deploy:</span> Vercel</p>
-          <p className="pt-2 text-muted/40">Desenvolvido para Gaki Marketing Digital</p>
+      <div className="bg-surface-container-low rounded-xl p-5">
+        <h3 className="text-sm font-semibold text-on-surface mb-3">Sobre o Naka OS</h3>
+        <div className="space-y-2 text-xs text-on-surface-variant">
+          <p><span className="text-on-surface font-medium">Versão:</span> 1.0.0</p>
+          <p><span className="text-on-surface font-medium">Build:</span> Next.js 16 + Tailwind CSS v4</p>
+          <p><span className="text-on-surface font-medium">Database:</span> Neon PostgreSQL</p>
+          <p><span className="text-on-surface font-medium">Deploy:</span> Vercel</p>
+          <p className="pt-2 text-on-surface-variant/40">Desenvolvido para Gaki Marketing Digital</p>
         </div>
       </div>
     </div>

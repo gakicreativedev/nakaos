@@ -77,6 +77,7 @@ export const kanbanColumns = pgTable("kanban_columns", {
   id: text("id").primaryKey(),
   titulo: text("titulo").notNull(),
   clientId: text("client_id").notNull().references(() => clients.id, { onDelete: "cascade" }),
+  servico: text("servico"),
   ordem: integer("ordem").notNull(),
 });
 
@@ -91,6 +92,8 @@ export const tasks = pgTable("tasks", {
   tags: jsonb("tags").$type<string[]>().notNull(),
   clientId: text("client_id").references(() => clients.id, { onDelete: "set null" }),
   colunaId: text("coluna_id").notNull().references(() => kanbanColumns.id, { onDelete: "cascade" }),
+  servico: text("servico"),
+  ordem: integer("ordem").notNull().default(0),
   recorrente: boolean("recorrente").notNull().default(false),
   frequencia: text("frequencia"),
   criadoEm: text("criado_em").notNull(),
@@ -117,6 +120,21 @@ export const taskAnexos = pgTable("task_anexos", {
   id: text("id").primaryKey(),
   taskId: text("task_id").notNull().references(() => tasks.id, { onDelete: "cascade" }),
   url: text("url").notNull(),
+  nome: text("nome").notNull().default(""),
+  tipo: text("tipo").notNull().default("imagem"), // imagem | documento | video
+});
+
+/* ── Task Annotations (feedback visual em imagens) ── */
+export const taskAnnotations = pgTable("task_annotations", {
+  id: text("id").primaryKey(),
+  taskId: text("task_id").notNull().references(() => tasks.id, { onDelete: "cascade" }),
+  anexoId: text("anexo_id").notNull().references(() => taskAnexos.id, { onDelete: "cascade" }),
+  x: doublePrecision("x").notNull(),
+  y: doublePrecision("y").notNull(),
+  usuario: text("usuario").notNull(),
+  texto: text("texto").notNull(),
+  resolved: boolean("resolved").notNull().default(false),
+  criadoEm: text("criado_em").notNull(),
 });
 
 /* ── Finanças (Movimentações) ── */

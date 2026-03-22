@@ -1,6 +1,6 @@
 import AppShell from "@/components/app-shell";
 import ClienteDetail from "@/components/clientes/cliente-detail";
-import { getClientById, getBrandHub, getAllTasksWithDetails, getMovimentacoes } from "@/lib/queries";
+import { getClientById, getBrandHub, getTasksWithDetailsByClient, getMovimentacoesByClient } from "@/lib/queries";
 import { notFound } from "next/navigation";
 import { requireAuth } from "@/lib/require-auth";
 
@@ -10,8 +10,8 @@ export default async function ClientePage({ params }: { params: Promise<{ id: st
   const [client, brandHub, tasks, movimentacoes] = await Promise.all([
     getClientById(id),
     getBrandHub(id),
-    getAllTasksWithDetails(),
-    getMovimentacoes(),
+    getTasksWithDetailsByClient(id),
+    getMovimentacoesByClient(id),
   ]);
   if (!client) notFound();
   return (

@@ -44,7 +44,7 @@ export default function RichTextEditor({ content, onChange, placeholder }: RichT
     },
     editorProps: {
       attributes: {
-        class: "prose-editor min-h-[180px] max-h-[350px] overflow-y-auto px-4 py-3 text-sm text-[#c8c8c8] focus:outline-none",
+        class: "prose-editor min-h-[180px] max-h-[350px] overflow-y-auto px-4 py-3 text-sm text-on-surface focus:outline-none",
       },
     },
   });
@@ -52,9 +52,9 @@ export default function RichTextEditor({ content, onChange, placeholder }: RichT
   if (!editor) return null;
 
   return (
-    <div className="rounded-xl border border-border bg-[#141414] overflow-hidden">
+    <div className="rounded-xl overflow-hidden">
       {/* Toolbar */}
-      <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-border bg-[#0e0e0e] flex-wrap">
+      <div className="flex items-center gap-0.5 px-2 py-1.5 bg-surface-container rounded-t-xl flex-wrap">
         {/* Headings */}
         <ToolbarGroup>
           <ToolbarButton
@@ -173,7 +173,9 @@ export default function RichTextEditor({ content, onChange, placeholder }: RichT
       </div>
 
       {/* Editor content */}
-      <EditorContent editor={editor} />
+      <div className="bg-surface-container-low rounded-b-xl">
+        <EditorContent editor={editor} />
+      </div>
 
       {/* Styles for the editor */}
       <style jsx global>{`
@@ -262,10 +264,10 @@ function ToolbarButton({
       type="button"
       onClick={onClick}
       title={title}
-      className={`p-1.5 rounded-md transition-colors ${
+      className={`p-1.5 rounded-lg transition-colors ${
         active
-          ? "bg-white/10 text-foreground"
-          : "text-muted-soft hover:text-muted hover:bg-white/[0.05]"
+          ? "bg-surface-container-high text-on-surface"
+          : "text-outline hover:text-on-surface-variant hover:bg-surface-container-high"
       }`}
     >
       {children}
@@ -278,5 +280,5 @@ function ToolbarGroup({ children }: { children: React.ReactNode }) {
 }
 
 function Divider() {
-  return <div className="w-px h-4 bg-border mx-1" />;
+  return <div className="w-px h-4 bg-outline-variant/15 mx-1" />;
 }

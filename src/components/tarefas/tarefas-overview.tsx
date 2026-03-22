@@ -5,203 +5,140 @@ import { AltArrowRight } from "@solar-icons/react";
 import type { Client, Task, KanbanColumn, TaskPriority } from "@/lib/types";
 import KanbanBoard from "./kanban-board";
 
-const PRIORITY_COLORS: Record<string, string> = {
-  Urgente: "bg-urgent",
-  Alta: "bg-warning",
-  Média: "bg-info",
-  Baixa: "bg-success",
-};
+const PRI_BG: Record<string, string> = { Urgente: "bg-error", Alta: "bg-warning", Média: "bg-secondary", Baixa: "bg-success" };
+const PRI_TEXT: Record<string, string> = { Urgente: "text-error", Alta: "text-warning", Média: "text-secondary", Baixa: "text-success" };
 
-interface TarefasOverviewProps {
-  clients: Client[];
-  tasks: Task[];
-  columns: KanbanColumn[];
-}
+interface Props { clients: Client[]; tasks: Task[]; columns: KanbanColumn[] }
 
-export default function TarefasOverview({ clients, tasks, columns }: TarefasOverviewProps) {
+export default function TarefasOverview({ clients, tasks, columns }: Props) {
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  const [expandedClientId, setExpandedClientId] = useState<string | null>(null);
 
   if (selectedClientId) {
-    return (
-      <KanbanBoard
-        clients={clients}
-        tasks={tasks}
-        columns={columns}
-        initialClientId={selectedClientId}
-        onBack={() => setSelectedClientId(null)}
-      />
-    );
+    const selectedClient = clients.find((c) => c.id === selectedClientId);
+    if (selectedClient) {
+      const clientTasks = tasks.filter((t) => t.clientId === selectedClientId);
+      const clientColumns = columns.filter((c) => c.clientId === selectedClientId);
+      return <KanbanBoard client={selectedClient} tasks={clientTasks} columns={clientColumns} onBack={() => setSelectedClientId(null)} />;
+    }
   }
 
-  const activeClients = clients.filter(
-    (c) => c.status === "Ativo" || c.status === "Onboarding"
-  );
+  const activeClients = clients.filter((c) => c.status === "Ativo" || c.status === "Onboarding");
+
+  // Global stats
+  const totalTasks = tasks.length;
+  const urgentTasks = tasks.filter((t) => t.prioridade === "Urgente").length;
+  const overdueTasks = tasks.filter((t) => new Date(t.prazo) < new Date()).length;
 
   return (
     <>
-      {/* Header */}
       <div>
-        <h1 className="text-xl sm:text-2xl font-semibold text-gradient tracking-tight">
-          Tarefas
-        </h1>
-        <p className="text-muted text-xs sm:text-sm mt-1">
-          Selecione um cliente para visualizar o quadro de tarefas.
-        </p>
+        <h1 className="text-xl sm:text-2xl font-semibold text-on-surface tracking-tight">Tarefas</h1>
+        <p className="text-on-surface-variant text-xs sm:text-sm mt-1">Selecione um cliente para visualizar o quadro de tarefas.</p>
       </div>
 
-      {/* Client Summary Cards */}
+      {/* Global stats */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-surface-container-low rounded-xl p-4">
+          <p className="text-[10px] text-on-surface-variant uppercase tracking-widest">Total</p>
+          <p className="text-2xl font-semibold text-on-surface">{totalTasks}</p>
+        </div>
+        <div className="bg-surface-container-low rounded-xl p-4">
+          <p className="text-[10px] text-error uppercase tracking-widest">Urgentes</p>
+          <p className="text-2xl font-semibold text-error">{urgentTasks}</p>
+        </div>
+        <div className="bg-surface-container-low rounded-xl p-4">
+          <p className="text-[10px] text-warning uppercase tracking-widest">Atrasadas</p>
+          <p className="text-2xl font-semibold text-warning">{overdueTasks}</p>
+        </div>
+      </div>
+
+      {/* Client cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         {activeClients.map((client) => {
-          const clientTasks = tasks.filter((t) => t.clientId === client.id);
-          const clientColumns = columns.filter((c) => c.clientId === client.id);
-          const totalTasks = clientTasks.length;
-
-          // Count by priority
-          const byPriority = clientTasks.reduce(
-            (acc, t) => {
-              acc[t.prioridade] = (acc[t.prioridade] || 0) + 1;
-              return acc;
-            },
-            {} as Record<string, number>
-          );
-
-          // Count overdue
-          const overdue = clientTasks.filter(
-            (t) =>
-              new Date(t.prazo) < new Date() &&
-              !clientColumns.find(
-                (c) =>
-                  c.id === t.colunaId &&
-                  c.titulo.toLowerCase().includes("aprovado")
-              )
-          ).length;
-
-          // Etapas progress
-          const totalEtapas = clientTasks.reduce(
-            (sum, t) => sum + t.etapas.length,
-            0
-          );
-          const doneEtapas = clientTasks.reduce(
-            (sum, t) => sum + t.etapas.filter((e) => e.concluida).length,
-            0
-          );
-          const progressPercent =
-            totalEtapas > 0 ? Math.round((doneEtapas / totalEtapas) * 100) : 0;
-
-          // Tasks per column summary
-          const columnSummary = clientColumns
-            .sort((a, b) => a.ordem - b.ordem)
-            .map((col) => ({
-              titulo: col.titulo,
-              count: clientTasks.filter((t) => t.colunaId === col.id).length,
-            }))
-            .filter((c) => c.count > 0);
+          const ct = tasks.filter((t) => t.clientId === client.id);
+          const cc = columns.filter((c) => c.clientId === client.id);
+          const byPriority = ct.reduce((a, t) => { a[t.prioridade] = (a[t.prioridade] || 0) + 1; return a; }, {} as Record<string, number>);
+          const overdue = ct.filter((t) => new Date(t.prazo) < new Date()).length;
+          const totalEtapas = ct.reduce((s, t) => s + t.etapas.length, 0);
+          const doneEtapas = ct.reduce((s, t) => s + t.etapas.filter((e) => e.concluida).length, 0);
+          const pct = totalEtapas > 0 ? Math.round((doneEtapas / totalEtapas) * 100) : 0;
+          const expanded = expandedClientId === client.id;
 
           return (
-            <button
-              key={client.id}
-              onClick={() => setSelectedClientId(client.id)}
-              className="glass-card rounded-3xl p-6 text-left transition-all group relative z-0"
-            >
-              {/* Top progress accent bar */}
-              {totalEtapas > 0 && (
-                <div className="absolute top-0 left-6 right-6 h-[3px] rounded-b-full overflow-hidden">
-                  <div className="h-full bg-[#1a1a1a] w-full" />
-                  <div
-                    className="h-full rounded-full bg-success absolute top-0 left-0 transition-all"
-                    style={{ width: `${progressPercent}%` }}
-                  />
+            <div key={client.id} className="bg-surface-container-low rounded-xl transition-all duration-300 group">
+              {/* Card header - clickable to expand */}
+              <button onClick={() => setExpandedClientId(expanded ? null : client.id)} className="w-full p-6 text-left">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-11 h-11 rounded-2xl bg-secondary-container/20 flex items-center justify-center text-sm font-bold text-secondary shrink-0">{client.nome[0]}</div>
+                    <div>
+                      <p className="text-[15px] font-semibold text-on-surface">{client.nome}</p>
+                      <p className="text-[11px] text-on-surface-variant mt-0.5">{ct.length} tarefa{ct.length !== 1 ? "s" : ""} · {client.servicosContratados.length} serviço{client.servicosContratados.length !== 1 ? "s" : ""}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {overdue > 0 && <span className="text-[10px] px-2.5 py-1 rounded-xl bg-error/10 text-error font-medium">{overdue} atrasada{overdue !== 1 ? "s" : ""}</span>}
+                    <div className={`w-8 h-8 rounded-xl bg-surface-container flex items-center justify-center text-on-surface-variant transition-transform ${expanded ? "rotate-90" : ""}`}><AltArrowRight size={16} /></div>
+                  </div>
                 </div>
-              )}
 
-              {/* Client header */}
-              <div className="flex items-center justify-between mb-5 relative z-10">
-                <div className="flex items-center gap-3.5">
-                  <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-success/20 to-success/5 border border-success/10 flex items-center justify-center text-sm font-bold text-success shrink-0">
-                    {client.nome[0]}
+                {/* Progress */}
+                {totalEtapas > 0 && (
+                  <div className="mb-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] text-on-surface-variant uppercase tracking-widest font-medium">Progresso</span>
+                      <span className="text-[11px] text-success font-semibold">{pct}%</span>
+                    </div>
+                    <div className="w-full h-1 rounded-full bg-surface-container overflow-hidden"><div className="h-full rounded-full bg-secondary transition-all" style={{ width: `${pct}%` }} /></div>
                   </div>
-                  <div>
-                    <p className="text-[15px] font-semibold text-foreground/90 group-hover:text-foreground transition-colors">
-                      {client.nome}
-                    </p>
-                    <p className="text-[11px] text-muted-soft mt-0.5">
-                      {totalTasks} tarefa{totalTasks !== 1 ? "s" : ""}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {overdue > 0 && (
-                    <span className="text-[10px] px-2.5 py-1 rounded-xl bg-urgent/10 text-urgent font-medium border border-urgent/10">
-                      {overdue} atrasada{overdue !== 1 ? "s" : ""}
-                    </span>
-                  )}
-                  <div className="w-8 h-8 rounded-xl bg-white/[0.04] flex items-center justify-center text-muted-soft group-hover:text-foreground group-hover:bg-white/[0.08] transition-all">
-                    <AltArrowRight size={16} />
-                  </div>
-                </div>
-              </div>
+                )}
 
-              {/* Progress info */}
-              {totalEtapas > 0 && (
-                <div className="mb-5 relative z-10">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] text-muted-soft uppercase tracking-widest font-medium">
-                      Progresso
-                    </span>
-                    <span className="text-[11px] text-success font-semibold">
-                      {progressPercent}%
-                    </span>
-                  </div>
-                  <div className="w-full h-1 rounded-full bg-white/[0.04] overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-success to-success/70 transition-all"
-                      style={{ width: `${progressPercent}%` }}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Priority + Column summary */}
-              <div className="flex items-center justify-between relative z-10">
                 {/* Priority indicators */}
                 <div className="flex items-center gap-2.5">
-                  {(
-                    ["Urgente", "Alta", "Média", "Baixa"] as TaskPriority[]
-                  ).map((p) => {
-                    const count = byPriority[p] || 0;
-                    if (count === 0) return null;
-                    return (
-                      <span
-                        key={p}
-                        className="flex items-center gap-1.5 text-[11px] text-muted-soft"
-                      >
-                        <span
-                          className={`w-2 h-2 rounded-full ${PRIORITY_COLORS[p] ?? "bg-muted"}`}
-                        />
-                        {count}
-                      </span>
-                    );
+                  {(["Urgente", "Alta", "Média", "Baixa"] as TaskPriority[]).map((p) => {
+                    const c = byPriority[p] || 0;
+                    if (c === 0) return null;
+                    return <span key={p} className="flex items-center gap-1.5 text-[11px] text-on-surface-variant"><span className={`w-2 h-2 rounded-full ${PRI_BG[p]}`} />{c}</span>;
                   })}
                 </div>
-              </div>
+              </button>
 
-              {/* Column breakdown pills */}
-              {columnSummary.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mt-4 relative z-10">
-                  {columnSummary.map((col) => (
-                    <span
-                      key={col.titulo}
-                      className="text-[10px] px-2.5 py-1 rounded-xl bg-white/[0.04] text-muted-soft border border-white/[0.04]"
-                    >
-                      {col.titulo}{" "}
-                      <span className="text-foreground/70 font-semibold">
-                        {col.count}
-                      </span>
-                    </span>
-                  ))}
+              {/* Expanded: task list + kanban button */}
+              {expanded && (
+                <div className="px-6 pb-6 border-t border-outline-variant/10">
+                  {/* Service breakdown */}
+                  {client.servicosContratados.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-4 mb-3">
+                      {client.servicosContratados.map((svc) => {
+                        const svcCount = ct.filter((t) => t.servico === svc).length;
+                        return <span key={svc} className="text-[10px] px-2.5 py-1 rounded-xl bg-surface-container text-on-surface-variant">{svc} <span className="text-on-surface font-semibold">{svcCount}</span></span>;
+                      })}
+                    </div>
+                  )}
+
+                  {/* Task list */}
+                  <div className="bg-surface-container-lowest rounded-xl overflow-hidden mb-3 max-h-[250px] overflow-y-auto">
+                    {ct.length === 0 && <p className="text-xs text-outline text-center py-6">Nenhuma tarefa</p>}
+                    {ct.slice(0, 10).map((t) => (
+                      <div key={t.id} className="flex items-center px-4 py-3 gap-2 hover:bg-surface-container transition-colors">
+                        <span className={`w-2 h-2 rounded-full ${PRI_BG[t.prioridade] ?? "bg-outline"} shrink-0`} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium text-on-surface truncate">{t.titulo}</p>
+                          <p className="text-[10px] text-on-surface-variant">{t.servico || "Geral"} · {t.responsavel}</p>
+                        </div>
+                        <span className={`text-[10px] ${new Date(t.prazo) < new Date() ? "text-error" : "text-on-surface-variant"}`}>{new Date(t.prazo).toLocaleDateString("pt-BR")}</span>
+                      </div>
+                    ))}
+                    {ct.length > 10 && <p className="text-[10px] text-outline text-center py-2">+{ct.length - 10} tarefas</p>}
+                  </div>
+
+                  <button onClick={() => setSelectedClientId(client.id)} className="w-full py-2.5 rounded-full bg-primary text-on-primary text-sm font-medium hover:opacity-90 transition-opacity">
+                    Abrir Quadro Kanban
+                  </button>
                 </div>
               )}
-            </button>
+            </div>
           );
         })}
       </div>

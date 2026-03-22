@@ -3,15 +3,6 @@
 import Link from "next/link";
 import type { Client, BrandHubData } from "@/lib/types";
 
-/* Gradient backgrounds for cards that don't have a cover image yet */
-const CARD_GRADIENTS = [
-  "from-[#4A7C59]/60 via-[#2a4a33]/40 to-transparent",
-  "from-[#C47B5A]/60 via-[#6a3d28]/40 to-transparent",
-  "from-[#5b8def]/60 via-[#2a3a6a]/40 to-transparent",
-  "from-[#7CB342]/60 via-[#3a5a1a]/40 to-transparent",
-  "from-[#a855f7]/60 via-[#4a2a6a]/40 to-transparent",
-];
-
 interface BrandGalleryProps {
   clients: Client[];
   brandHubs: BrandHubData[];
@@ -30,8 +21,8 @@ export default function BrandGallery({ clients, brandHubs }: BrandGalleryProps) 
     <>
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-semibold text-gradient tracking-tight">Brand Hub</h1>
-        <p className="text-muted text-sm mt-1">
+        <h1 className="text-2xl font-semibold text-on-surface tracking-tight">Brand Hub</h1>
+        <p className="text-on-surface-variant text-sm mt-1">
           Identidade visual e diretrizes de marca dos seus clientes.
         </p>
       </div>
@@ -47,12 +38,12 @@ export default function BrandGallery({ clients, brandHubs }: BrandGalleryProps) 
             <Link
               key={client.id}
               href={`/brand-hub/${client.id}`}
-              className="group relative rounded-2xl overflow-hidden border border-border hover:border-border-hover transition-all duration-300 cursor-pointer"
+              className="group relative rounded-xl overflow-hidden bg-surface-container-low hover:bg-surface-container transition-all duration-300 cursor-pointer"
               style={{ aspectRatio: "1/1" }}
             >
               {/* Visual top area — background image if coverImage exists, otherwise gradient */}
               <div
-                className="absolute inset-0 rounded-2xl bg-center bg-cover bg-no-repeat transition-transform duration-700 group-hover:scale-105"
+                className="absolute inset-0 rounded-xl bg-center bg-cover bg-no-repeat transition-transform duration-700 group-hover:scale-105"
                 style={{
                   backgroundImage: client.coverImage
                     ? `url(${client.coverImage})`
@@ -75,11 +66,11 @@ export default function BrandGallery({ clients, brandHubs }: BrandGalleryProps) 
                 </div>
 
                 {/* Bottom card overlay — like the reference image */}
-                <div className="bg-[#141414]/90 backdrop-blur-sm rounded-xl p-4 border border-white/[0.05] group-hover:border-white/[0.1] transition-colors">
+                <div className="bg-surface-container-lowest/90 backdrop-blur-sm rounded-xl p-4 border border-white/[0.05] group-hover:border-white/[0.1] transition-colors">
                   <div className="flex items-center justify-between mb-3">
                     <div>
-                      <p className="text-sm font-medium text-[#c8c8c8]">{brandHub.nicho.split(".")[0]}</p>
-                      <p className="text-[11px] text-muted-soft mt-0.5">{brandHub.fontes[0]?.nome}</p>
+                      <p className="text-sm font-medium text-on-surface">{brandHub.nicho.split(".")[0]}</p>
+                      <p className="text-[11px] text-outline mt-0.5">{brandHub.fontes[0]?.nome}</p>
                     </div>
                   </div>
 
@@ -97,11 +88,11 @@ export default function BrandGallery({ clients, brandHubs }: BrandGalleryProps) 
 
                   {/* Bottom stats */}
                   <div className="flex items-center justify-between">
-                    <p className="text-xs text-muted-soft">
-                      <span className="text-lg font-semibold text-[#c8c8c8]">{String(brandHub.logos.length).padStart(2, "0")}</span>{" "}
+                    <p className="text-xs text-outline">
+                      <span className="text-lg font-semibold text-on-surface">{String(brandHub.logos.length).padStart(2, "0")}</span>{" "}
                       Logos
                     </p>
-                    <p className="text-xs text-muted-soft">
+                    <p className="text-xs text-outline">
                       {brandHub.cores.length} Cores · {brandHub.fontes.length} Fontes
                     </p>
                   </div>
@@ -115,17 +106,17 @@ export default function BrandGallery({ clients, brandHubs }: BrandGalleryProps) 
         {clientsWithoutBrandHub.map((client) => (
           <div
             key={client.id}
-            className="relative rounded-2xl overflow-hidden border border-dashed border-border hover:border-border-hover transition-all duration-300 flex flex-col items-center justify-center p-6 text-center"
+            className="relative rounded-xl overflow-hidden border-2 border-dashed border-outline-variant/20 hover:border-outline/30 transition-all duration-300 flex flex-col items-center justify-center p-6 text-center"
             style={{ aspectRatio: "1/1" }}
           >
-            <div className="w-12 h-12 rounded-xl bg-surface flex items-center justify-center text-lg font-semibold text-muted mb-3">
+            <div className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center text-lg font-semibold text-on-surface-variant mb-3">
               {client.nome[0]}
             </div>
-            <p className="text-sm font-medium text-muted-soft">{client.nome}</p>
-            <p className="text-[11px] text-muted-soft mt-1 mb-4">Sem Brand Hub</p>
+            <p className="text-sm font-medium text-outline">{client.nome}</p>
+            <p className="text-[11px] text-outline mt-1 mb-4">Sem Brand Hub</p>
             <Link
               href={`/brand-hub/${client.id}`}
-              className="px-4 py-2 rounded-xl border border-border text-xs font-medium text-muted-soft hover:text-muted hover:border-border-hover transition-all"
+              className="px-4 py-2 rounded-full bg-primary text-on-primary text-xs font-medium hover:opacity-90 transition-opacity"
             >
               + Criar Brand
             </Link>

@@ -1,8 +1,19 @@
 "use server";
 
 import { db } from "@/db";
-import { eq } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import * as schema from "@/db/schema";
+
+/* ── Helpers ── */
+function groupBy<T>(items: T[], keyFn: (item: T) => string): Map<string, T[]> {
+  const map = new Map<string, T[]>();
+  for (const item of items) {
+    const key = keyFn(item);
+    const arr = map.get(key);
+    if (arr) arr.push(item); else map.set(key, [item]);
+  }
+  return map;
+}
 
 /* ── Clients ── */
 export async function getClients() {
@@ -30,10 +41,12 @@ export async function getBrandHub(clientId: string) {
     const [hub] = await db.select().from(schema.brandHubs).where(eq(schema.brandHubs.clientId, clientId)).limit(1);
     if (!hub) return null;
 
-    const logos = await db.select().from(schema.brandLogos).where(eq(schema.brandLogos.clientId, clientId));
-    const cores = await db.select().from(schema.brandColors).where(eq(schema.brandColors.clientId, clientId));
-    const fontes = await db.select().from(schema.brandFonts).where(eq(schema.brandFonts.clientId, clientId));
-    const historico = await db.select().from(schema.brandHistorico).where(eq(schema.brandHistorico.clientId, clientId));
+    const [logos, cores, fontes, historico] = await Promise.all([
+      db.select().from(schema.brandLogos).where(eq(schema.brandLogos.clientId, clientId)),
+      db.select().from(schema.brandColors).where(eq(schema.brandColors.clientId, clientId)),
+      db.select().from(schema.brandFonts).where(eq(schema.brandFonts.clientId, clientId)),
+      db.select().from(schema.brandHistorico).where(eq(schema.brandHistorico.clientId, clientId)),
+    ]);
 
     return { ...hub, logos, cores, fontes, historico };
   } catch (error) {
@@ -44,16 +57,26 @@ export async function getBrandHub(clientId: string) {
 
 export async function getAllBrandHubs() {
   try {
-    const hubs = await db.select().from(schema.brandHubs);
-    const results = [];
-    for (const hub of hubs) {
-      const logos = await db.select().from(schema.brandLogos).where(eq(schema.brandLogos.clientId, hub.clientId));
-      const cores = await db.select().from(schema.brandColors).where(eq(schema.brandColors.clientId, hub.clientId));
-      const fontes = await db.select().from(schema.brandFonts).where(eq(schema.brandFonts.clientId, hub.clientId));
-      const historico = await db.select().from(schema.brandHistorico).where(eq(schema.brandHistorico.clientId, hub.clientId));
-      results.push({ ...hub, logos, cores, fontes, historico });
-    }
-    return results;
+    const [hubs, allLogos, allCores, allFontes, allHistorico] = await Promise.all([
+      db.select().from(schema.brandHubs),
+      db.select().from(schema.brandLogos),
+      db.select().from(schema.brandColors),
+      db.select().from(schema.brandFonts),
+      db.select().from(schema.brandHistorico),
+    ]);
+
+    const logosMap = groupBy(allLogos, (l) => l.clientId);
+    const coresMap = groupBy(allCores, (c) => c.clientId);
+    const fontesMap = groupBy(allFontes, (f) => f.clientId);
+    const historicoMap = groupBy(allHistorico, (h) => h.clientId);
+
+    return hubs.map((hub) => ({
+      ...hub,
+      logos: logosMap.get(hub.clientId) ?? [],
+      cores: coresMap.get(hub.clientId) ?? [],
+      fontes: fontesMap.get(hub.clientId) ?? [],
+      historico: historicoMap.get(hub.clientId) ?? [],
+    }));
   } catch (error) {
     console.error("[getAllBrandHubs] Database error:", error);
     return [];
@@ -90,11 +113,13 @@ export async function getTaskWithDetails(taskId: string) {
     const [task] = await db.select().from(schema.tasks).where(eq(schema.tasks.id, taskId)).limit(1);
     if (!task) return null;
 
-    const etapas = await db.select().from(schema.taskEtapas).where(eq(schema.taskEtapas.taskId, taskId));
-    const comentarios = await db.select().from(schema.taskComments).where(eq(schema.taskComments.taskId, taskId));
-    const anexos = await db.select().from(schema.taskAnexos).where(eq(schema.taskAnexos.taskId, taskId));
+    const [etapas, comentarios, anexos] = await Promise.all([
+      db.select().from(schema.taskEtapas).where(eq(schema.taskEtapas.taskId, taskId)),
+      db.select().from(schema.taskComments).where(eq(schema.taskComments.taskId, taskId)),
+      db.select().from(schema.taskAnexos).where(eq(schema.taskAnexos.taskId, taskId)),
+    ]);
 
-    return { ...task, etapas, comentarios, anexos: anexos.map((a) => a.url) };
+    return { ...task, etapas, comentarios, anexos };
   } catch (error) {
     console.error("[getTaskWithDetails] Database error:", error);
     return null;
@@ -103,17 +128,51 @@ export async function getTaskWithDetails(taskId: string) {
 
 export async function getAllTasksWithDetails() {
   try {
-    const allTasks = await db.select().from(schema.tasks);
-    const results = [];
-    for (const task of allTasks) {
-      const etapas = await db.select().from(schema.taskEtapas).where(eq(schema.taskEtapas.taskId, task.id));
-      const comentarios = await db.select().from(schema.taskComments).where(eq(schema.taskComments.taskId, task.id));
-      const anexos = await db.select().from(schema.taskAnexos).where(eq(schema.taskAnexos.taskId, task.id));
-      results.push({ ...task, etapas, comentarios, anexos: anexos.map((a) => a.url) });
-    }
-    return results;
+    const [allTasks, allEtapas, allComments, allAnexos] = await Promise.all([
+      db.select().from(schema.tasks),
+      db.select().from(schema.taskEtapas),
+      db.select().from(schema.taskComments),
+      db.select().from(schema.taskAnexos),
+    ]);
+
+    const etapasMap = groupBy(allEtapas, (e) => e.taskId);
+    const commentsMap = groupBy(allComments, (c) => c.taskId);
+    const anexosMap = groupBy(allAnexos, (a) => a.taskId);
+
+    return allTasks.map((task) => ({
+      ...task,
+      etapas: etapasMap.get(task.id) ?? [],
+      comentarios: commentsMap.get(task.id) ?? [],
+      anexos: anexosMap.get(task.id) ?? [],
+    }));
   } catch (error) {
     console.error("[getAllTasksWithDetails] Database error:", error);
+    return [];
+  }
+}
+
+export async function getTasksWithDetailsByClient(clientId: string) {
+  try {
+    const [clientTasks, allEtapas, allComments, allAnexos] = await Promise.all([
+      db.select().from(schema.tasks).where(eq(schema.tasks.clientId, clientId)),
+      db.select().from(schema.taskEtapas),
+      db.select().from(schema.taskComments),
+      db.select().from(schema.taskAnexos),
+    ]);
+
+    const taskIds = new Set(clientTasks.map((t) => t.id));
+    const etapasMap = groupBy(allEtapas.filter((e) => taskIds.has(e.taskId)), (e) => e.taskId);
+    const commentsMap = groupBy(allComments.filter((c) => taskIds.has(c.taskId)), (c) => c.taskId);
+    const anexosMap = groupBy(allAnexos.filter((a) => taskIds.has(a.taskId)), (a) => a.taskId);
+
+    return clientTasks.map((task) => ({
+      ...task,
+      etapas: etapasMap.get(task.id) ?? [],
+      comentarios: commentsMap.get(task.id) ?? [],
+      anexos: anexosMap.get(task.id) ?? [],
+    }));
+  } catch (error) {
+    console.error("[getTasksWithDetailsByClient] Database error:", error);
     return [];
   }
 }
@@ -133,6 +192,16 @@ export async function getMovimentacoesByClient(clientId: string) {
     return await db.select().from(schema.movimentacoes).where(eq(schema.movimentacoes.clientId, clientId));
   } catch (error) {
     console.error("[getMovimentacoesByClient] Database error:", error);
+    return [];
+  }
+}
+
+/* ── Annotations ── */
+export async function getAnnotationsByAnexo(anexoId: string) {
+  try {
+    return await db.select().from(schema.taskAnnotations).where(eq(schema.taskAnnotations.anexoId, anexoId));
+  } catch (error) {
+    console.error("[getAnnotationsByAnexo] Database error:", error);
     return [];
   }
 }
@@ -214,8 +283,7 @@ export async function getProjetosByUsuario(usuarioId: string) {
     const memberships = await db.select().from(schema.projetoMembros).where(eq(schema.projetoMembros.usuarioId, usuarioId));
     if (memberships.length === 0) return [];
     const projetoIds = memberships.map((m) => m.projetoId);
-    const all = await db.select().from(schema.projetos);
-    return all.filter((p) => projetoIds.includes(p.id));
+    return await db.select().from(schema.projetos).where(inArray(schema.projetos.id, projetoIds));
   } catch (error) {
     console.error("[getProjetosByUsuario] Database error:", error);
     return [];
@@ -234,10 +302,12 @@ export async function getProjetoMembros(projetoId: string) {
 export async function getProjetoMembro(projetoId: string, usuarioId: string) {
   try {
     const [member] = await db.select().from(schema.projetoMembros)
-      .where(eq(schema.projetoMembros.projetoId, projetoId)).limit(100);
-    const found = (await db.select().from(schema.projetoMembros))
-      .find((m) => m.projetoId === projetoId && m.usuarioId === usuarioId);
-    return found ?? null;
+      .where(and(
+        eq(schema.projetoMembros.projetoId, projetoId),
+        eq(schema.projetoMembros.usuarioId, usuarioId),
+      ))
+      .limit(1);
+    return member ?? null;
   } catch (error) {
     console.error("[getProjetoMembro] Database error:", error);
     return null;

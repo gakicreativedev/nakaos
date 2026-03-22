@@ -39,6 +39,52 @@ export async function createProjeto(nome: string, descricao: string) {
   }
 }
 
+export async function updateProjeto(projetoId: string, nome: string, descricao: string) {
+  try {
+    if (!nome.trim()) return { error: "Nome é obrigatório." };
+    await db.update(schema.projetos).set({ nome: nome.trim(), descricao: descricao.trim(), atualizadoEm: new Date().toISOString().split("T")[0] }).where(eq(schema.projetos.id, projetoId));
+    revalidatePath(`/projetos/${projetoId}`);
+    revalidatePath("/projetos");
+    return { success: true };
+  } catch (error) {
+    console.error("[updateProjeto] Error:", error);
+    return { error: "Falha ao atualizar projeto." };
+  }
+}
+
+export async function deleteProjeto(projetoId: string) {
+  try {
+    await db.delete(schema.projetos).where(eq(schema.projetos.id, projetoId));
+    revalidatePath("/projetos");
+    return { success: true };
+  } catch (error) {
+    console.error("[deleteProjeto] Error:", error);
+    return { error: "Falha ao excluir projeto." };
+  }
+}
+
+export async function updateProjetoTask(taskId: string, projetoId: string, fields: { titulo?: string; descricao?: string; responsavel?: string; prazo?: string; prioridade?: string }) {
+  try {
+    await db.update(schema.projetoTasks).set(fields).where(eq(schema.projetoTasks.id, taskId));
+    revalidatePath(`/projetos/${projetoId}`);
+    return { success: true };
+  } catch (error) {
+    console.error("[updateProjetoTask] Error:", error);
+    return { error: "Falha ao atualizar tarefa." };
+  }
+}
+
+export async function deleteProjetoTask(taskId: string, projetoId: string) {
+  try {
+    await db.delete(schema.projetoTasks).where(eq(schema.projetoTasks.id, taskId));
+    revalidatePath(`/projetos/${projetoId}`);
+    return { success: true };
+  } catch (error) {
+    console.error("[deleteProjetoTask] Error:", error);
+    return { error: "Falha ao excluir tarefa." };
+  }
+}
+
 export async function updateProjetoCoverImage(projetoId: string, coverImage: string) {
   try {
     await db.update(schema.projetos).set({ coverImage: coverImage || null, atualizadoEm: new Date().toISOString().split("T")[0] }).where(eq(schema.projetos.id, projetoId));

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -11,7 +10,6 @@ import {
   TasksIcon,
   FinanceIcon,
   SettingsIcon,
-  ChevronLeftIcon,
   BrandHubIcon,
   ProjectsIcon,
 } from "./icons";
@@ -28,45 +26,25 @@ const NAV_ITEMS = [
 ];
 
 export default function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
 
   return (
     <>
-      {/* Desktop Sidebar */}
-      <aside
-        className={`hidden md:flex flex-col transition-all duration-300 ease-[cubic-bezier(.4,0,.2,1)] ${
-          collapsed ? "w-[68px] px-2.5" : "w-[210px] px-5"
-        } py-5`}
-      >
-        {/* Logo + toggle */}
-        <div
-          className={`flex items-center mb-5 min-h-[40px] ${
-            collapsed ? "justify-center" : "justify-between pl-1"
-          }`}
-        >
-          {!collapsed && (
-            <Image
-              src="/logo-naka.svg"
-              alt="Naka OS"
-              width={80}
-              height={41}
-              priority
-            />
-          )}
-          <button
-            onClick={() => setCollapsed((p) => !p)}
-            className="p-1.5 flex items-center justify-center rounded-lg text-muted hover:bg-white/5 transition-colors"
-            title={collapsed ? "Expandir" : "Recolher"}
-          >
-            <ChevronLeftIcon
-              className={`transition-transform duration-300 ${collapsed ? "rotate-180" : ""}`}
-            />
-          </button>
+      {/* Desktop Sidebar — always expanded */}
+      <aside className="hidden md:flex flex-col h-screen w-72 bg-surface border-r border-white/5 sticky top-0 shrink-0">
+        {/* Logo */}
+        <div className="px-8 py-8">
+          <Image
+            src="/logo-naka.svg"
+            alt="Naka OS"
+            width={80}
+            height={41}
+            priority
+          />
         </div>
 
         {/* Nav items */}
-        <nav className="flex flex-col gap-1 flex-1">
+        <nav className="flex flex-col gap-1 flex-1 px-4">
           {NAV_ITEMS.map((item) => {
             const isActive =
               item.href === "/"
@@ -77,43 +55,35 @@ export default function Sidebar() {
               <Link
                 key={item.id}
                 href={item.href}
-                title={collapsed ? item.label : undefined}
-                className={`flex items-center gap-3 rounded-[14px] transition-all duration-200 ${
-                  collapsed ? "justify-center py-3" : "px-4 py-3"
-                } ${
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-sm ${
                   isActive
-                    ? "bg-gradient-to-t from-[#191919] to-[#2a2a2a] shadow-[0_3px_3px_rgba(0,0,0,0.25)]"
-                    : "hover:bg-gradient-to-t hover:from-[#191919] hover:to-[#222]"
+                    ? "text-primary font-semibold bg-primary-container/20"
+                    : "text-on-surface-variant/70 hover:bg-surface-container-lowest hover:text-on-surface"
                 }`}
               >
-                <span className="flex items-center justify-center w-5 h-5 shrink-0 text-gradient">
+                <span className="flex items-center justify-center w-5 h-5 shrink-0">
                   <Icon />
                 </span>
-                {!collapsed && (
-                  <span className="text-sm font-normal text-gradient whitespace-nowrap">
-                    {item.label}
-                  </span>
-                )}
+                <span className="whitespace-nowrap">{item.label}</span>
               </Link>
             );
           })}
         </nav>
 
         {/* Logout */}
-        <button
-          onClick={() => authClient.signOut()}
-          title={collapsed ? "Sair" : undefined}
-          className={`flex items-center gap-3 rounded-[14px] transition-all duration-200 text-muted-soft hover:text-red-400 hover:bg-red-500/10 w-full ${
-            collapsed ? "justify-center py-3" : "px-4 py-3"
-          }`}
-        >
-          <Logout2 size={20} />
-          {!collapsed && <span className="text-sm font-normal whitespace-nowrap">Sair</span>}
-        </button>
+        <div className="px-4 pb-6">
+          <button
+            onClick={() => authClient.signOut()}
+            className="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-on-surface-variant/70 hover:text-error hover:bg-error/10 w-full text-sm"
+          >
+            <Logout2 size={20} />
+            <span className="whitespace-nowrap">Sair</span>
+          </button>
+        </div>
       </aside>
 
-      {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#191919]/95 backdrop-blur-lg border-t border-border flex justify-around py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] px-1">
+      {/* Mobile Bottom Nav — Floating Island */}
+      <nav className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md z-50 flex justify-around items-center py-3 rounded-full bg-surface-container-highest/80 backdrop-blur-3xl border border-white/10 shadow-[0_20px_40px_rgba(0,0,0,0.4)]">
         {NAV_ITEMS.filter((item) => item.id !== "settings").map((item) => {
           const isActive =
             item.href === "/"
@@ -124,12 +94,13 @@ export default function Sidebar() {
             <Link
               key={item.id}
               href={item.href}
-              className={`flex flex-col items-center gap-1 px-2 py-1 rounded-lg transition-colors ${
-                isActive ? "text-foreground" : "text-muted"
+              className={`flex flex-col items-center justify-center transition-all duration-200 active:scale-90 ${
+                isActive
+                  ? "text-primary after:content-[''] after:block after:w-1 after:h-1 after:bg-primary after:rounded-full after:mt-1"
+                  : "text-on-surface/40 hover:text-on-surface"
               }`}
             >
               <Icon />
-              <span className="text-[10px] font-medium">{item.label}</span>
             </Link>
           );
         })}

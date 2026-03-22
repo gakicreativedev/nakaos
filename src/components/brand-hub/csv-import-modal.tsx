@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { CloseCircle } from "@solar-icons/react";
 
 type ImportType = "cores" | "fontes" | "identidade";
@@ -57,6 +58,7 @@ const FIELD_MAP: Record<string, string> = {
 };
 
 export default function CsvImportModal({ clientId, onClose }: { clientId: string; onClose: () => void }) {
+  const router = useRouter();
   const [importType, setImportType] = useState<ImportType>("cores");
   const [parsed, setParsed] = useState<{ headers: string[]; rows: ParsedRow[] } | null>(null);
   const [saving, setSaving] = useState(false);
@@ -135,16 +137,16 @@ export default function CsvImportModal({ clientId, onClose }: { clientId: string
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-lg bg-[#1a1a1a] border border-border rounded-2xl p-6 max-h-[90vh] overflow-y-auto">
+      <div className="relative w-full max-w-lg bg-surface-container border border-outline-variant/15 rounded-2xl p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-lg font-semibold text-gradient">Importar CSV</h2>
-          <button onClick={onClose} className="text-muted hover:text-foreground transition-colors p-1">
+          <h2 className="text-lg font-semibold text-on-surface">Importar CSV</h2>
+          <button onClick={onClose} className="text-on-surface-variant hover:text-on-surface transition-colors p-1">
             <CloseCircle size={18} />
           </button>
         </div>
 
         {/* Type selector */}
-        <div className="flex bg-[#0a0a0a] rounded-xl p-1 mb-5 border border-white/5">
+        <div className="flex bg-surface-container-lowest rounded-xl p-1 mb-5 border border-outline-variant/10">
           {([
             { id: "cores" as const, label: "Cores" },
             { id: "fontes" as const, label: "Fontes" },
@@ -153,7 +155,7 @@ export default function CsvImportModal({ clientId, onClose }: { clientId: string
             <button
               key={t.id}
               onClick={() => { setImportType(t.id); setParsed(null); setError(""); setSuccess(""); }}
-              className={`flex-1 text-xs font-medium py-2 rounded-lg transition-all ${importType === t.id ? "bg-[#1a1a1a] text-foreground shadow-sm" : "text-muted-soft hover:text-muted"}`}
+              className={`flex-1 text-xs font-medium py-2 rounded-lg transition-all ${importType === t.id ? "bg-surface-container-low text-on-surface shadow-sm" : "text-outline hover:text-on-surface-variant"}`}
             >
               {t.label}
             </button>
@@ -161,9 +163,9 @@ export default function CsvImportModal({ clientId, onClose }: { clientId: string
         </div>
 
         {/* Format hint */}
-        <div className="bg-[#141414] rounded-xl border border-border p-3 mb-4">
-          <p className="text-[10px] text-muted-soft font-medium uppercase tracking-wider mb-1">Formato esperado</p>
-          <code className="text-[11px] text-muted-soft block whitespace-pre">
+        <div className="bg-surface-container-lowest rounded-xl p-3 mb-4">
+          <p className="text-[10px] text-outline font-medium uppercase tracking-wider mb-1">Formato esperado</p>
+          <code className="text-[11px] text-outline block whitespace-pre">
             {importType === "cores" && "nome,hex,rgb,cmyk\nAzul,#1E40AF,\"30,64,175\",\"89,64,0,31\""}
             {importType === "fontes" && "nome,categoria,downloadUrl\nMontserrat,Display,https://..."}
             {importType === "identidade" && "campo,valor\nnicho,Marketing Digital\npublicoAlvo,PMEs"}
@@ -176,33 +178,33 @@ export default function CsvImportModal({ clientId, onClose }: { clientId: string
             type="file"
             accept=".csv,.txt"
             onChange={handleFile}
-            className="w-full text-sm text-muted-soft file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border file:border-border file:bg-[#141414] file:text-sm file:text-muted-soft file:cursor-pointer hover:file:bg-white/[0.05] file:transition-colors"
+            className="w-full text-sm text-outline file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border file:border-outline-variant/15 file:bg-surface-container-lowest file:text-sm file:text-outline file:cursor-pointer hover:file:bg-surface-container file:transition-colors"
           />
         </div>
 
         {/* Preview */}
         {parsed && parsed.rows.length > 0 && (
           <div className="mb-4">
-            <p className="text-xs text-muted-soft mb-2">{parsed.rows.length} linha(s) encontrada(s)</p>
-            <div className="bg-[#141414] rounded-xl border border-border overflow-x-auto max-h-[200px] overflow-y-auto">
+            <p className="text-xs text-outline mb-2">{parsed.rows.length} linha(s) encontrada(s)</p>
+            <div className="bg-surface-container-lowest rounded-xl overflow-x-auto max-h-[200px] overflow-y-auto">
               <table className="w-full text-[11px]">
                 <thead>
-                  <tr className="border-b border-border">
+                  <tr>
                     {parsed.headers.map((h) => (
-                      <th key={h} className="px-3 py-2 text-left text-muted-soft font-medium uppercase tracking-wider">{h}</th>
+                      <th key={h} className="px-3 py-2 text-left text-outline font-medium uppercase tracking-wider">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {parsed.rows.slice(0, 10).map((row, i) => (
-                    <tr key={i} className="border-b border-[#1a1a1a] last:border-b-0">
+                    <tr key={i} className="hover:bg-surface-container">
                       {parsed.headers.map((h) => (
-                        <td key={h} className="px-3 py-1.5 text-[#c8c8c8] max-w-[150px] truncate">{row[h]}</td>
+                        <td key={h} className="px-3 py-1.5 text-on-surface max-w-[150px] truncate">{row[h]}</td>
                       ))}
                     </tr>
                   ))}
                   {parsed.rows.length > 10 && (
-                    <tr><td colSpan={parsed.headers.length} className="px-3 py-1.5 text-muted-soft text-center">... e mais {parsed.rows.length - 10} linha(s)</td></tr>
+                    <tr><td colSpan={parsed.headers.length} className="px-3 py-1.5 text-outline text-center">... e mais {parsed.rows.length - 10} linha(s)</td></tr>
                   )}
                 </tbody>
               </table>
@@ -210,24 +212,24 @@ export default function CsvImportModal({ clientId, onClose }: { clientId: string
           </div>
         )}
 
-        {error && <p className="text-red-400 text-sm text-center mb-3">{error}</p>}
-        {success && <p className="text-green-400 text-sm text-center mb-3">{success}</p>}
+        {error && <p className="text-error text-sm text-center mb-3">{error}</p>}
+        {success && <p className="text-success text-sm text-center mb-3">{success}</p>}
 
         <div className="flex gap-3">
-          <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-border text-sm text-muted-soft hover:text-muted hover:border-border-hover transition-all">
+          <button type="button" onClick={onClose} className="flex-1 py-3 rounded-full text-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-all">
             {success ? "Fechar" : "Cancelar"}
           </button>
           {!success && (
             <button
               onClick={handleImport}
               disabled={saving || !parsed || parsed.rows.length === 0}
-              className="flex-1 py-2.5 rounded-xl bg-gradient-to-t from-[#1a1a1a] to-[#2a2a2a] border border-border-hover text-sm font-medium text-foreground hover:border-[#3a3a3a] transition-colors disabled:opacity-50"
+              className="flex-1 py-3 rounded-full bg-primary text-on-primary text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
             >
               {saving ? "Importando..." : "Importar"}
             </button>
           )}
           {success && (
-            <button onClick={() => window.location.reload()} className="flex-1 py-2.5 rounded-xl bg-gradient-to-t from-[#1a1a1a] to-[#2a2a2a] border border-border-hover text-sm font-medium text-foreground hover:border-[#3a3a3a] transition-colors">
+            <button onClick={() => router.refresh()} className="flex-1 py-3 rounded-full bg-primary text-on-primary text-sm font-medium hover:opacity-90 transition-opacity">
               Recarregar
             </button>
           )}

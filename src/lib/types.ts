@@ -92,6 +92,26 @@ export interface TaskComment {
   data: string;
 }
 
+export interface TaskAnexo {
+  id: string;
+  taskId: string;
+  url: string;
+  nome: string;
+  tipo: string; // imagem | documento | video
+}
+
+export interface TaskAnnotation {
+  id: string;
+  taskId: string;
+  anexoId: string;
+  x: number;
+  y: number;
+  usuario: string;
+  texto: string;
+  resolved: boolean | null;
+  criadoEm: string;
+}
+
 export interface Task {
   id: string;
   titulo: string;
@@ -102,18 +122,21 @@ export interface Task {
   tags: string[];
   clientId: string | null;
   colunaId: string;
+  servico: string | null;
+  ordem: number;
   recorrente: boolean | null;
   frequencia: string | null;
   criadoEm: string;
   etapas: Etapa[];
   comentarios: TaskComment[];
-  anexos: string[];
+  anexos: TaskAnexo[];
 }
 
 export interface KanbanColumn {
   id: string;
   titulo: string;
   clientId: string;
+  servico: string | null;
   ordem: number;
 }
 
